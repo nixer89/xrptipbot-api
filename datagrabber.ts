@@ -2,66 +2,96 @@ import * as fetch from 'node-fetch';
 import * as mongoose from 'mongoose'
 import * as HttpsProxyAgent from 'https-proxy-agent';
 
-import * as util from './utils';
-
 let proxy = new HttpsProxyAgent("http://proxy.wincor-nixdorf.com:81");
 
 let max = 200;
-let db: mongoose.Connection;
+let connection: mongoose.Connection;
+let collectionName:string = "testtestCollection123345";
+var Schema = mongoose.Schema;
+var tipbotModel;
+
+var tipBotSchema = new Schema({
+    id: { type: [String], index: true },
+    moment: String,
+    type: String,
+    xrp: Number,
+    network: String,
+    user: String,
+    to: String,
+    user_network: String,
+    to_network: String,
+    user_id: String,
+    to_id: String,
+    context: String,
+});
+
+let useProxy = false;
 
 export async function initFeed() {
-    await mongoose.connect('mongodb://127.0.0.1:27017');
-    db = mongoose.connection;
+    await mongoose.connect('mongodb://127.0.0.1:27017', { autoIndex: false });
+    connection = mongoose.connection;
 
-    db.on('open', ()=>{console.log("Connection to MongoDB established")});
-    db.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
-    let transactions:[] = [];
+    connection.on('open', ()=>{console.log("Connection to MongoDB established")});
+    connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
 
-    let tips = await readInFeed(transactions, null, 0, 200, true);
+    let newCollection = false;    
 
-    let tipbotFeed = db.collection("tipbotFeedTest");
-    //console.log("collection: " + JSON.stringify(tipbotFeed));
+    let collections = await mongoose.connection.db.listCollections({name: collectionName});
+    if(await !collections.hasNext())
+        newCollection = true;
 
-    if(!tipbotFeed) {
-        //createCollection
-        await db.createCollection("tipbotFeedTest",null,(err, collection) =>{console.log("CreateCollection err? " + JSON.stringify(err))});
-        tipbotFeed = db.collection("tipbotFeedTest");
-    } 
+    tipbotModel = mongoose.model('testTestModel', tipBotSchema, collectionName);
+    
+    await scanFeed(0,newCollection ? 10000: 200,true, newCollection);
 
-    for(let tip of tips) {
-        let result = await tipbotFeed.update(tip, tip, {upsert: true});
-        console.log("updateResult: " + JSON.stringify(result));
-
-        if(!result['upserted']) break;
-    }
+    setInterval(() => scanFeed(0,200,true,false), 300000);
 }
 
-async function readInFeed(receivedTips: any[], checkUntilDate: Date, skip: number, limit: number, continueRequests: boolean): Promise<any[]> {
+async function scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean): Promise<void> {
 
+    console.log("scanning feed with skip: " + skip + " and limit: " + limit);
     if(continueRequests && skip < max) {
         console.time("apiRequestTime");
-        let tipbotFeed = await fetch.default('https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit, {agent: proxy});
+        console.log("scanning API");
+        let tipbotFeed = await fetch.default('https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit, {agent: useProxy ? proxy : null});
         console.timeEnd("apiRequestTime");
         if(tipbotFeed.ok) {
             console.time("jsonTime");
             let feedArray = await tipbotFeed.json();
             console.timeEnd("jsonTime");
-            
-            let lastFeedTipDate = new Date(feedArray.feed[feedArray.feed.length-1].moment);
-            
-            if(feedArray)
-                receivedTips = receivedTips.concat(feedArray.feed);
 
-            if(checkUntilDate)
-                continueRequests = lastFeedTipDate > checkUntilDate;
+            console.log("got API response");
+            //we have entries -> store them in db!
+            if(feedArray && feedArray.feed) {
+                if(newCollection) {
+                    console.log("this is a new collection, so insert feed");
+                    //insert all at once and ignore duplicates
+                    let result = await tipbotModel.updateMany({}, feedArray.feed, {upsert: true});
+                    console.log("updateManyResult: " + JSON.stringify(result));
+                } else {
+                    console.log("insert step by step")
+                    //insert step by step and stop insert if duplicate found!
+                    for(let tip of feedArray.feed) {
+                        //insert feed to db
+                        let result = await tipbotModel.updateOne(tip, tip, {upsert: true});
+                        console.log("updateResult: " + JSON.stringify(result));
+                
+                        if(!result['upserted']) {
+                            continueRequests = false;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                //nothing to do anymore -> cancel execution
+                continueRequests = false;
+            }
 
         } else {
+            //something is wrong -> cancel request
             continueRequests = false
         }
 
-        receivedTips = await readInFeed(receivedTips, checkUntilDate , skip+=limit, limit, continueRequests);
+        await scanFeed(skip+=limit, limit, continueRequests,newCollection);
     }
-
-    console.log(receivedTips.length);
-    return receivedTips;
 }
