@@ -19,6 +19,7 @@
   "homepage": "https://github.com/nixer89/xrptipbot-api#readme",
   "dependencies": {
     "fastify": "^1.13.4",
+    "fastify-cors": "^1.0.0",
     "https-proxy-agent": "^2.2.1",
     "mongoose": "^5.4.8",
     "node-fetch": "^2.3.0"
