@@ -6,6 +6,10 @@ fastify.register(require('fastify-cors'), {})
 
 console.log("declaring routes")
 // Declare a route
+fastify.get('/', async (request, reply) => {
+  reply.code(200).send('I am alive!'); 
+});
+
 fastify.get('/feed', async (request, reply) => {
   console.log("query params: " + JSON.stringify(request.query));
     let feedResult = await feed.getFeed(request.query);
