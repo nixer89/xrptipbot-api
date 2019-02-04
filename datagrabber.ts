@@ -3,7 +3,8 @@ import * as mongoose from 'mongoose'
 import * as HttpsProxyAgent from 'https-proxy-agent';
 import { CommandCursor } from 'mongodb';
 
-let proxy = new HttpsProxyAgent("");
+let proxy = new HttpsProxyAgent("http://proxy:81");
+let useProxy = false;
 
 let connection: mongoose.Connection;
 let collectionName:string = "tipbotFeedCollection";
@@ -27,8 +28,6 @@ var tipBotSchema:mongoose.Schema = new Schema({
 
 tipBotSchema = tipBotSchema.index({id:1, moment: 1, user_id:1}, {unique: true});
 
-let useProxy = false;
-
 export async function initFeed() {
     await mongoose.connect('mongodb://127.0.0.1:27017', { useCreateIndex: true});
     connection = mongoose.connection;
@@ -41,16 +40,16 @@ export async function initFeed() {
     let collections:CommandCursor = await mongoose.connection.db.listCollections({name: collectionName});
     newCollection = !(await collections.hasNext());
     
-    tipbotModel = mongoose.model('testTestModel', tipBotSchema, collectionName);
+    tipbotModel = mongoose.model('xrpTipBotApiModel', tipBotSchema, collectionName);
 
     console.log("is new collection? " + newCollection);
     
     //initialize feed on startup -> create new collection or add missing transactions
-    await scanFeed(0,newCollection ? 10000: 200,true, newCollection);
+    await scanFeed(0, newCollection ? 10000: 200, true, newCollection);
 
     console.log("feed initialized");
 
-    setInterval(() => scanFeed(0,100,true,false), 60000);
+    setInterval(() => scanFeed(0, 100, true, false), 60000);
 }
 
 async function scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean): Promise<void> {
@@ -58,50 +57,56 @@ async function scanFeed(skip: number, limit: number, continueRequests: boolean, 
     if(continueRequests) {
         console.log("scanning feed with: " + 'https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit);
         console.time("apiRequestTime");
-        let tipbotFeed = await fetch.default('https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit, {agent: useProxy ? proxy : null});
-        console.timeEnd("apiRequestTime");
-        if(tipbotFeed.ok) {
-            console.time("jsonTime");
-            let feedArray = await tipbotFeed.json();
-            console.timeEnd("jsonTime");
+        try {
+            let tipbotFeed = await fetch.default('https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit, {agent: useProxy ? proxy : null});
+            console.timeEnd("apiRequestTime");
+            if(tipbotFeed.ok) {
+                console.time("jsonTime");
+                let feedArray = await tipbotFeed.json();
+                console.timeEnd("jsonTime");
 
-            console.log("got API response");
-            //we have entries -> store them in db!
-            if(feedArray && feedArray.feed && feedArray.feed.length > 0) {
-                if(newCollection) {
-                    console.log("this is a new collection, so insert feed");
-                    //insert all at once and ignore duplicates
-                    try {
-                        await tipbotModel.insertMany(feedArray.feed);
-                    } catch(err) {
-                        console.log("insertMany error: " + JSON.stringify(err));
-                        //Seems like a new transaction took place in the tip bot and api returns the same element again.
-                        //Mongo throws error to avoid having duplicate keys -> so call the api again with skipping one more item!
-                        return scanFeed(skip+=1, limit, continueRequests, newCollection);
-                    }
-                } else {
-                    console.log("insert step by step")
-                    //we are no new collection so we shouldn`t have too much entries
-                    //update step by step and use upsert to insert new entries. If old entry was updated, then stop execution!
-                    for(let tip of feedArray.feed) {
-                        //insert feed to db
-                        let result = await tipbotModel.updateOne(tip, tip, {upsert: true});
-                        console.log("updateResult: " + JSON.stringify(result));
-                
-                        if(!result['upserted']) {
-                            continueRequests = false;
-                            break;
+                console.log("got API response");
+                //we have entries -> store them in db!
+                if(feedArray && feedArray.feed && feedArray.feed.length > 0) {
+                    if(newCollection) {
+                        console.log("this is a new collection, so insert feed");
+                        //insert all at once and ignore duplicates
+                        try {
+                            await tipbotModel.insertMany(feedArray.feed);
+                        } catch(err) {
+                            console.log("insertMany error: " + JSON.stringify(err));
+                            //Seems like a new transaction took place in the tip bot and api returns the same element again.
+                            //Mongo throws error to avoid having duplicate keys -> so call the api again with skipping one more item!
+                            return scanFeed(skip+=1, limit, continueRequests, newCollection);
+                        }
+                    } else {
+                        console.log("insert step by step")
+                        //we are no new collection so we shouldn`t have too much entries
+                        //update step by step and use upsert to insert new entries. If old entry was updated, then stop execution!
+                        for(let tip of feedArray.feed) {
+                            //insert feed to db
+                            let result = await tipbotModel.updateOne(tip, tip, {upsert: true});
+                            console.log("updateResult: " + JSON.stringify(result));
+                    
+                            if(!result['upserted']) {
+                                continueRequests = false;
+                                break;
+                            }
                         }
                     }
+                } else {
+                    //nothing to do anymore -> cancel execution
+                    continueRequests = false;
                 }
-            } else {
-                //nothing to do anymore -> cancel execution
-                continueRequests = false;
-            }
 
-        } else {
-            //something is wrong -> cancel request
-            continueRequests = false
+            } else {
+                //something is wrong -> cancel request
+                continueRequests = false
+            }
+        } catch {
+            //nothing to do here.
+            console.log("xrptipbot api could not be reached!")
+            continueRequests = false;
         }
 
         return scanFeed(skip+=limit, limit, continueRequests,newCollection);

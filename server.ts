@@ -1,4 +1,4 @@
-const fastify = require('fastify')()
+const fastify = require('fastify')({ trustProxy: true })
 const feed = require('./datagrabber');
 
 
@@ -21,9 +21,9 @@ fastify.get('/feed', async (request, reply) => {
 const start = async () => {
     try {
       feed.initFeed();
-      await fastify.listen(4000)
+      await fastify.listen(80)
       console.log(`server listening on ${fastify.server.address().port}`)
-      console.log("https://localhost:4000");
+      console.log("http://localhost/");
     } catch (err) {
       fastify.log.error(err)
       process.exit(1)
