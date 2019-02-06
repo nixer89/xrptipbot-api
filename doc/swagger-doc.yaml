@@ -2,13 +2,20 @@ openapi: 3.0.0
 info:
   title: XRPTipBot API Specification
   description: |
-   This API is a full mirror of the XRPTipBot API [https://www.xrptipbot.com/json/feed](https://www.xrptipbot.com/json/feed) by [@WietseWind](https://twitter.com/WietseWind).<br>
-   The API feed is updated every 30 seconds (not real time). The original API provides limited capabilities and therefore this new API was built.
+   This API is a full mirror of the [XRPTipBot API](https://www.xrptipbot.com/json/feed) by [@WietseWind](https://twitter.com/WietseWind).<br>
+   The API feed is updated every 30 seconds. The original API provides limited capabilities and therefore this new API was built to enhance the querying capabilities.
    
-   You can use every JSON field of the original feed as query parameter + additionally these query params\:<br>
-   'from_date=2019-02-01 00:03:00' => to pick tips only from that date/time on<br>
-   'to_date=2019-02-01 00:03:00' => to pick tips only until that date/time<br>
-   'limit=10' => to limit the returned number of tips
+   You can use every JSON field of the feed as query parameter. Additionally these query params are supported\:<br><br>
+   '<b>from_date=2019-02-01 00:03:00</b>' => to pick tips only from that date/time on<br>
+   '<b>to_date=2019-02-01 00:03:00</b>' => to pick tips only until that date/time<br>
+   '<b>limit=10</b>' => to limit the returned number of tips<br>
+
+   Additionally, to speed up the requests even more, you can define a list of result fields you want to retreive in the response.<br>
+   Usually the API returns the whole JSON object of the XRPTipBot-Transaction. But most likely you don`t need all the fields. So you can specify which fields you want!<br>
+   The query param is called 'result_fields' and you can define the fields included in your respone, divided by space. As Example\:<br>
+   '<b>result_fields=moment user to xrp</b>' -> this will return you just those 4 defined JSON properties in the response.<br>
+   Try it out with this request\:<br>
+   [All Tips WietseWind received](https://xrptipbot-api.siedentopf.xyz/feed?to=WietseWind&result_fields=moment%20user%20to%20xrp)
 
    As the original XRPTipBot-Feed built by [@WietseWind](https://twitter.com/WietseWind), the API provides it`s data in a decending manner, ordered by date.
   version: 0.0.1
@@ -95,6 +102,12 @@ paths:
             type: string
         - name: to_date
           description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: result_fields
+          description: choose which fields the result json object should contain
           in: query
           required: false
           schema:

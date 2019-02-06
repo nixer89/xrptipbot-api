@@ -6,8 +6,8 @@ module.exports = function (fastify, opts, next) {
         try {
             let feedResult = await feed.getFeed(request.query);
             if(feedResult) {
-            console.log("feed length: " + feedResult.length);
-            return { feed: feedResult}
+                console.log("feed length: " + feedResult.length);
+                return { feed: feedResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
