@@ -59,16 +59,12 @@ async function scanFeed(skip: number, limit: number, continueRequests: boolean, 
 
     if(continueRequests) {
         console.log("scanning feed with: " + 'https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit);
-        console.time("apiRequestTime");
         try {
             let tipbotFeed = await fetch.default('https://www.xrptipbot.com/json/feed?skip='+skip+'&limit='+limit, {agent: useProxy ? proxy : null});
-            console.timeEnd("apiRequestTime");
-            if(tipbotFeed.ok) {
-                console.time("jsonTime");
-                let feedArray = await tipbotFeed.json();
-                console.timeEnd("jsonTime");
 
-                console.log("got API response");
+            if(tipbotFeed.ok) {
+                let feedArray = await tipbotFeed.json();
+
                 //we have entries -> store them in db!
                 if(feedArray && feedArray.feed && feedArray.feed.length > 0) {
                     if(newCollection) {
@@ -160,9 +156,8 @@ export async function getFeed(filter:any): Promise<any[]> {
                 finalFilter = filter;
 
             console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " and limit: " +limit);
-            console.time("Database");
             let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
-            console.timeEnd("Database");
+
             if(mongoResult) return mongoResult
             else emptyResult;
         } catch(err) {

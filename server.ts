@@ -27,7 +27,7 @@ const start = async () => {
       feedInit.initFeed();
       await fastify.listen(4000,'0.0.0.0');
       console.log(`server listening on ${fastify.server.address().port}`)
-      console.log("http://localhost/");
+      console.log("http://localhost:4000/");
 
       fastify.ready(err => {
         if (err) throw err
