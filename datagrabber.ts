@@ -49,7 +49,7 @@ export async function initFeed() {
 
     console.log("feed initialized");
 
-    setInterval(() => scanFeed(0, 100, true, false), 60000);
+    setInterval(() => scanFeed(0, 100, true, false), 30000);
 }
 
 async function scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean): Promise<void> {

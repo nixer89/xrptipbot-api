@@ -1,0 +1,160 @@
+openapi: 3.0.0
+info:
+  title: XRPTipBot API Specification
+  description: |
+   This API is a full mirror of the XRPTipBot API [https://www.xrptipbot.com/json/feed](https://www.xrptipbot.com/json/feed) by [@WietseWind](https://twitter.com/WietseWind).<br>
+   The API feed is updated every 30 seconds (not real time). The original API provides limited capabilities and therefore this new API was built.
+   
+   You can use every JSON field of the original feed as query parameter + additionally these query params\:<br>
+   'from_date=2019-02-01 00:03:00' => to pick tips only from that date/time on<br>
+   'to_date=2019-02-01 00:03:00' => to pick tips only until that date/time<br>
+   'limit=10' => to limit the returned number of tips
+
+   As the original XRPTipBot-Feed built by [@WietseWind](https://twitter.com/WietseWind), the API provides it`s data in a decending manner, ordered by date.
+  version: 0.0.1
+tags:
+  - name: XRPTipBot API
+    description: This API is dedicated to the XRPTipBot. It is still in beta and will be improved over time.
+paths:
+  /feed:
+    get:
+      summary: Returns the XRPTipBot feed
+      description: Returns an array of XRPTipBotTransactions sorted by date.
+      tags:
+        - Feed-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: value of XRP you want to check for
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check the tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          description: user handle which sent a tip or received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          description: user handle which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          description: user_id which sent a tip or received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_id
+          description: user_id which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: number to reduce the number of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns array of tips as JSON object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    feed:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            id:
+                              type: string
+                              description: id of the XRPTipBot transaction
+                              example: T#109745
+                            moment:
+                              type: string
+                              description: DateTime of the XRPTipBot transaction
+                              example: '2019-01-14 19:24:02'
+                            type:
+                              type: string
+                              description: type of the transaction (withdraw, deposit, tip, app,...)
+                              example: tip
+                            xrp:
+                              type: number
+                              format: float
+                              description: amount sent by this transaction
+                              example: 1.2345
+                            network:
+                              type: string
+                              description: network the transaction took place (twitter, discord, reddit,...)
+                              example: twitter
+                            user:
+                              type: string
+                              description: user handle which sent a tip or received a deposit or execuited a withdraw
+                              example: nixerFFM
+                            to:
+                              type: string
+                              description: user handle which received a tip
+                              example: WietseWind
+                            user_id:
+                              type: string
+                              description: user id which sent a tip or received a deposit or execuited a withdraw
+                              example: '1045758195220840449'
+                            to_id:
+                              type: string
+                              description: user id handle which received a tip
+                              example: '184574549'
+                            context:
+                              type: string
+                              description: link to the tip
+                              example: /nixerFFM/status/1084878639932600323
+          500:
+            description: error
+            schema:
+              type: string
+ 

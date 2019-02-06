@@ -1,29 +1,39 @@
 const fastify = require('fastify')({ trustProxy: true })
-const feed = require('./datagrabber');
+const feedInit = require('./datagrabber');
 
-
+console.log("adding cors");
 fastify.register(require('fastify-cors'), {})
 
 console.log("declaring routes")
-// Declare a route
+fastify.register(require('./routes/feed'));
+
 fastify.get('/', async (request, reply) => {
   reply.code(200).send('I am alive!'); 
 });
 
-fastify.get('/feed', async (request, reply) => {
-  console.log("query params: " + JSON.stringify(request.query));
-    let feedResult = await feed.getFeed(request.query);
-    console.log("feed length: " + feedResult.length);
-    return { feed: feedResult}
+fastify.register(require('fastify-swagger'), {
+  mode: 'static',
+  specification: {
+    path: './doc/swagger-doc.yaml'
+  },
+  exposeRoute: true,
+  routePrefix: '/docs'
 })
+
 
 // Run the server!
 const start = async () => {
     try {
-      feed.initFeed();
+      feedInit.initFeed();
       await fastify.listen(4000,'0.0.0.0');
       console.log(`server listening on ${fastify.server.address().port}`)
       console.log("http://localhost/");
+
+      fastify.ready(err => {
+        if (err) throw err
+        fastify.swagger()
+      })
+
     } catch (err) {
       fastify.log.error(err)
       process.exit(1)
