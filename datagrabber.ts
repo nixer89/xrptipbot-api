@@ -125,6 +125,9 @@ export async function getFeed(filter:any): Promise<any[]> {
             let limit:number;
             if(filter.limit) {
                 limit = parseInt(filter.limit);
+                if(isNaN(limit) || limit==0)
+                    return emptyResult;
+
                 delete filter.limit;
             }
 
@@ -144,7 +147,7 @@ export async function getFeed(filter:any): Promise<any[]> {
 
             let result_fields:string;
             if(filter.result_fields) {
-                result_fields = filter.result_fields;
+                result_fields = filter.result_fields.trim().replace(/,/g,' ');
                 delete filter.result_fields;
             }
 
@@ -155,7 +158,7 @@ export async function getFeed(filter:any): Promise<any[]> {
             } else
                 finalFilter = filter;
 
-            console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " and limit: " +limit);
+            console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
             let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
 
             if(mongoResult) return mongoResult

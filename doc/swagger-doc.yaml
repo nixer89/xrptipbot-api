@@ -12,10 +12,10 @@ info:
 
    Additionally, to speed up the requests even more, you can define a list of result fields you want to retreive in the response.<br>
    Usually the API returns the whole JSON object of the XRPTipBot-Transaction. But most likely you don`t need all the fields. So you can specify which fields you want!<br>
-   The query param is called 'result_fields' and you can define the fields included in your respone, divided by space. As Example\:<br>
-   '<b>result_fields=moment user to xrp</b>' -> this will return you just those 4 defined JSON properties in the response.<br>
+   The query param is called 'result_fields' and you can define the fields included in your respone, divided by comma. As Example\:<br>
+   '<b>result_fields=moment,user,to,xrp</b>' -> this will return you just those 4 defined JSON properties in the response.<br>
    Try it out with this request\:<br>
-   [All Tips WietseWind received](https://xrptipbot-api.siedentopf.xyz/feed?to=WietseWind&result_fields=moment%20user%20to%20xrp)
+   [All Tips WietseWind received](https://xrptipbot-api.siedentopf.xyz/feed?to=WietseWind&result_fields=moment,user,to,xrp)
 
    As the original XRPTipBot-Feed built by [@WietseWind](https://twitter.com/WietseWind), the API provides it`s data in a decending manner, ordered by date.
   version: 0.0.1
@@ -51,20 +51,20 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: value of XRP you want to check for
+          description: exact value of XRP you want to check for
           in: query
           required: false
           schema:
             type: number
             format: float
         - name: network
-          description: network you want to check the tips for. (twitter, discord, reddit,...)
+          description: network you want to check tips for. (twitter, discord, reddit,...)
           in: query
           required: false
           schema:
             type: string
         - name: user
-          description: user handle which sent a tip or received a deposit/withdraw
+          description: user handle which sent a tip OR received a deposit/withdraw
           in: query
           required: false
           schema:
@@ -76,7 +76,7 @@ paths:
           schema:
             type: string
         - name: user_id
-          description: user_id which sent a tip or received a deposit/withdraw
+          description: user_id which sent a tip OR received a deposit/withdraw
           in: query
           required: false
           schema:
@@ -88,7 +88,7 @@ paths:
           schema:
             type: string
         - name: limit
-          description: number to reduce the number of returned tips
+          description: value to reduce the amount of returned tips
           in: query
           required: false
           schema:
@@ -107,7 +107,7 @@ paths:
           schema:
             type: string
         - name: result_fields
-          description: choose which fields the result json object should contain
+          description: choose which fields the result json object should contain. Seperate values by comma!
           in: query
           required: false
           schema:
