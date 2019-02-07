@@ -1,11 +1,14 @@
 const fastify = require('fastify')({ trustProxy: true })
-const feedInit = require('./datagrabber');
+import * as feedScan from './feedScan';
+import * as feedRoute from './routes/feed';
+import * as countRoute from './routes/count';
 
 console.log("adding cors");
 fastify.register(require('fastify-cors'), {})
 
 console.log("declaring routes")
-fastify.register(require('./routes/feed'));
+fastify.register(feedRoute.registerRoute);
+fastify.register(countRoute.registerRoute);
 
 fastify.get('/', async (request, reply) => {
   reply.code(200).send('I am alive!'); 
@@ -24,7 +27,11 @@ fastify.register(require('fastify-swagger'), {
 // Run the server!
 const start = async () => {
     try {
-      feedInit.initFeed();
+      //init feed first!
+      await feedScan.initFeed()
+      await feedRoute.init();
+      await countRoute.init();
+
       await fastify.listen(4000,'0.0.0.0');
       console.log(`server listening on ${fastify.server.address().port}`)
       console.log("http://localhost:4000/");
