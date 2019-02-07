@@ -8,7 +8,8 @@ export async function registerRoute(fastify, opts, next) {
         console.log("query params: " + JSON.stringify(request.query));
         try {
             let countResult = await getCount(request.query);
-            if(countResult) {
+            console.log("countResult: " + JSON.stringify(countResult));
+            if(countResult>=0) {
                 console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ countResult);
                 return { count: countResult}
             } else {
@@ -32,12 +33,14 @@ async function getCount(filter:any): Promise<number> {
             console.log("Calling db with filter: " + JSON.stringify(filter));
             let mongoResult:number;
             if(filter.length <=2)
-                mongoResult = await tipbotModel.estimatedDocumentCount();
+                mongoResult = await tipbotModel.estimatedDocumentCount().exec();
             else
-                mongoResult = await tipbotModel.countDocuments(filter);
+                mongoResult = await tipbotModel.countDocuments(filter).exec();
 
-            if(mongoResult) return mongoResult
-            else failedResult;
+            if(mongoResult || mongoResult===0)
+                return mongoResult
+            else
+                return failedResult;
         } catch(err) {
             console.log(err);
             return failedResult;
