@@ -1,4 +1,5 @@
 const fastify = require('fastify')({ trustProxy: true })
+import * as db from './db';
 import * as feedScan from './feedScan';
 import * as feedRoute from './routes/feed';
 import * as countRoute from './routes/count';
@@ -28,7 +29,8 @@ fastify.register(require('fastify-swagger'), {
 const start = async () => {
     try {
       //init feed first!
-      await feedScan.initFeed()
+      let isNewCollection = await db.initDB();
+      await feedScan.initFeed(isNewCollection)
       await feedRoute.init();
       await countRoute.init();
 

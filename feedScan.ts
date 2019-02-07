@@ -8,16 +8,14 @@ let useProxy = false;
 
 var tipbotModel: mongoose.Model<any>;
 
-export async function initFeed(): Promise<void> {
-    
-    let newCollection = await db.initDB();
+export async function initFeed(isNewCollection:boolean): Promise<void> {
 
     tipbotModel = await db.getNewDbModel();
 
-    console.log("is new collection? " + newCollection);
+    console.log("is new collection? " + isNewCollection);
     
     //initialize feed on startup -> create new collection or add missing transactions
-    await scanFeed(0, newCollection ? 10000: 200, true, newCollection);
+    await scanFeed(0, isNewCollection ? 10000: 200, true, isNewCollection);
 
     console.log("feed initialized");
 
