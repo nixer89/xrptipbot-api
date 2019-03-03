@@ -2,13 +2,18 @@ const fastify = require('fastify')({ trustProxy: true })
 import * as db from './db';
 import * as feedScan from './feedScan';
 import * as feedRoute from './routes/feed';
+import * as ilpFeedRoute from './routes/ilp-feed';
 import * as countRoute from './routes/count';
+
+let feedURL = 'https://www.xrptipbot.com/json/feed';
+let ilpFeedURL = 'https://www.xrptipbot.com/json/ilp-feed';
 
 console.log("adding cors");
 fastify.register(require('fastify-cors'), {})
 
 console.log("declaring routes")
 fastify.register(feedRoute.registerRoute);
+fastify.register(ilpFeedRoute.registerRoute);
 fastify.register(countRoute.registerRoute);
 
 fastify.get('/', async (request, reply) => {
@@ -29,9 +34,14 @@ fastify.register(require('fastify-swagger'), {
 const start = async () => {
     try {
       //init feed first!
-      let isNewCollection = await db.initDB();
-      await feedScan.initFeed(isNewCollection)
+      let isNewCollectionTips = await db.initTipDB();
+      let isNewCollectionILP = await db.initILPDB();
+      let tipsFeed = new feedScan.FeedScan(await db.getNewDbModelTips(), feedURL, false);
+      let ilpFeed = new feedScan.FeedScan(await db.getNewDbModelILP(), ilpFeedURL, true);
+      await tipsFeed.initFeed(isNewCollectionTips);
+      await ilpFeed.initFeed(isNewCollectionILP);
       await feedRoute.init();
+      await ilpFeedRoute.init();
       await countRoute.init();
 
       await fastify.listen(4000,'0.0.0.0');

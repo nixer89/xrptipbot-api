@@ -23,19 +23,42 @@ export async function registerRoute(fastify, opts, next) {
 }
 
 export async function init() {
-    tipbotModel = await db.getNewDbModel();
+    tipbotModel = await db.getNewDbModelTips();
 }
 
 async function getCount(filter:any): Promise<number> {
     let failedResult:number = -1;
     if(tipbotModel) {
         try {
-            console.log("Calling db with filter: " + JSON.stringify(filter));
+            let filterWithOperatorAnd:any[] = [];
+
+            let from_date:Date;
+            if(filter.from_date) {
+                from_date = new Date(filter.from_date)
+                filterWithOperatorAnd.push({momentAsDate: {$gte: from_date}});
+                delete filter.from_date;
+            }
+
+            let to_date:Date;
+            if(filter.to_date) {
+                to_date = new Date(filter.to_date)
+                filterWithOperatorAnd.push({momentAsDate: {$lte: to_date}});
+                delete filter.to_date;
+            }
+
+            let finalFilter:any;
+            if(filterWithOperatorAnd.length>0) {
+                filterWithOperatorAnd.push(filter)
+                finalFilter = {$and: filterWithOperatorAnd}
+            } else
+                finalFilter = filter;
+
+            console.log("Calling db with filter: " + JSON.stringify(finalFilter));
             let mongoResult:number;
-            if(filter.length <=2)
+            if(finalFilter.length <=2)
                 mongoResult = await tipbotModel.estimatedDocumentCount().exec();
             else
-                mongoResult = await tipbotModel.countDocuments(filter).exec();
+                mongoResult = await tipbotModel.countDocuments(finalFilter).exec();
 
             if(mongoResult || mongoResult===0)
                 return mongoResult

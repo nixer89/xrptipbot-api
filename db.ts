@@ -2,7 +2,8 @@ import * as mongoose from 'mongoose'
 import { CommandCursor } from 'mongodb';
 
 let connection: mongoose.Connection;
-let collectionName:string = "tipbotFeedCollectionWithDate";
+let tipCollectionName:string = "FeedCollection";
+let ilpCollectionName:string = "ILPFeedCollection";
 var Schema = mongoose.Schema;
 
 var tipBotSchema:mongoose.Schema = new Schema({
@@ -25,7 +26,15 @@ tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
 tipBotSchema = tipBotSchema.index({user: 1, to:1 ,id:-1,}, {unique: true});
 tipBotSchema = tipBotSchema.index({user_id: 1, to_id:1 ,id:-1,}, {unique: true});
 
-export async function initDB(): Promise<boolean> {
+export function initTipDB(): Promise<boolean> {
+    return initDB(tipCollectionName);
+}
+
+export function initILPDB(): Promise<boolean> {
+    return initDB(ilpCollectionName);
+}
+
+async function initDB(collectionName: string): Promise<boolean> {
     await mongoose.connect('mongodb://127.0.0.1:27017', { useCreateIndex: true});
     connection = mongoose.connection;
 
@@ -40,7 +49,15 @@ export async function initDB(): Promise<boolean> {
     return newCollection;
 }
 
-export async function getNewDbModel(): Promise<mongoose.Model<any>> {
+export function getNewDbModelTips(): Promise<mongoose.Model<any>> {
+    return getNewDbModel(tipCollectionName);
+}
+
+export function getNewDbModelILP(): Promise<mongoose.Model<any>> {
+    return getNewDbModel(ilpCollectionName);
+}
+
+async function getNewDbModel(collectionName: string): Promise<mongoose.Model<any>> {
     let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017', { useCreateIndex: true});
     connection.on('open', ()=>{console.log("Connection to MongoDB established")});
     connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
