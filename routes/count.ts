@@ -7,7 +7,7 @@ export async function registerRoute(fastify, opts, next) {
     fastify.get('/count', async (request, reply) => {
         console.log("query params: " + JSON.stringify(request.query));
         try {
-            let countResult = await getCount(request.query);
+            let countResult = await getCount(JSON.stringify(request.query));
             console.log("countResult: " + JSON.stringify(countResult));
             if(countResult>=0) {
                 console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ countResult);
@@ -27,6 +27,8 @@ export async function init() {
 }
 
 async function getCount(filter:any): Promise<number> {
+    filter = JSON.parse(filter);
+    
     let failedResult:number = -1;
     if(tipbotModel) {
         try {

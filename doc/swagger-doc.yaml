@@ -18,7 +18,7 @@ info:
    [All Tips WietseWind received](https://xrptipbot-api.siedentopf.xyz/feed?to=WietseWind&result_fields=moment,user,to,xrp)
 
    As the original XRPTipBot-Feed built by [@WietseWind](https://twitter.com/WietseWind), the API provides it`s data in a decending manner, ordered by date.
-  version: 0.0.1
+  version: 0.0.2
 tags:
   - name: XRPTipBot API
     description: This API is dedicated to the XRPTipBot. It is still in beta and will be improved over time.
@@ -166,6 +166,141 @@ paths:
                               type: string
                               description: link to the tip
                               example: /nixerFFM/status/1084878639932600323
+        500:
+          description: error
+          schema:
+            type: string
+  /ilp-feed:
+    get:
+      summary: Returns the XRPTipBot ilp-feed
+      description: Returns an array of ILP-deposits sorted by date.
+      tags:
+        - ILP-Feed-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific ILP transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (ILP-Deposit)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for (in DROPS!)
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          description: user handle which received the ILP-Deposit
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          description: user_id which received the ILP-Deposit
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: result_fields
+          description: choose which fields the result json object should contain. Seperate values by comma!
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns array of ILP-deposits as JSON object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    feed:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            id:
+                              type: string
+                              description: id of the XRPTipBot ILP transaction
+                              example: I#2553508
+                            moment:
+                              type: string
+                              description: DateTime of the XRPTipBot ILP transaction
+                              example: '2019-03-04 10:50:08'
+                            type:
+                              type: string
+                              description: type of the transaction (ILP deposit)
+                              example: ILP deposit
+                            xrp:
+                              type: number
+                              format: float
+                              description: amount sent by this transaction in DROPS!!!
+                              example: 1528399918
+                            network:
+                              type: string
+                              description: network the transaction took place (twitter, discord, reddit,...)
+                              example: twitter
+                            user:
+                              type: string
+                              description: user handle which sent a tip or received a deposit or execuited a withdraw
+                              example: WietseWind
+                            to:
+                              type: string
+                              description: user handle which received a tip
+                              example: null
+                            user_id:
+                              type: string
+                              description: user id which sent a tip or received a deposit or execuited a withdraw
+                              example: '184574549'
+                            to_id:
+                              type: string
+                              description: user id handle which received a tip
+                              example: null
+                            context:
+                              type: string
+                              description: link to the tip
+                              example: ''
         500:
           description: error
           schema:

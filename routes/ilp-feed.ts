@@ -7,7 +7,7 @@ export async function registerRoute(fastify, opts, next) {
     fastify.get('/ilp-feed', async (request, reply) => {
         console.log("query params: " + JSON.stringify(request.query));
         try {
-            let feedResult = await getILPFeed(request.query);
+            let feedResult = await getILPFeed(JSON.stringify(request.query));
             if(feedResult) {
                 console.log("ilp-feed length: " + feedResult.length);
                 return { feed: feedResult}
@@ -26,6 +26,8 @@ export async function init() {
 }
 
 async function getILPFeed(filter:any): Promise<any[]> {
+    filter = JSON.parse(filter);
+    
     let emptyResult:any[] = [];
     if(tipbotModel) {
         try {

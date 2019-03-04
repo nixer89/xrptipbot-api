@@ -7,7 +7,7 @@ export async function registerRoute(fastify, opts, next) {
     fastify.get('/feed', async (request, reply) => {
         console.log("query params: " + JSON.stringify(request.query));
         try {
-            let feedResult = await getFeed(request.query);
+            let feedResult = await getFeed(JSON.stringify(request.query));
             if(feedResult) {
                 console.log("feed length: " + feedResult.length);
                 return { feed: feedResult}
@@ -26,6 +26,8 @@ export async function init() {
 }
 
 async function getFeed(filter:any): Promise<any[]> {
+    filter = JSON.parse(filter);
+    
     let emptyResult:any[] = [];
     if(tipbotModel) {
         try {

@@ -1,7 +1,6 @@
 import * as fetch from 'node-fetch';
 import * as mongoose from 'mongoose'
 import * as HttpsProxyAgent from 'https-proxy-agent';
-import { unwatchFile } from 'fs';
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
