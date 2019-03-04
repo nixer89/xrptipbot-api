@@ -403,4 +403,102 @@ paths:
           description: error
           schema:
             type: number
+  /aggregateXRP:
+    get:
+      summary: Returns the amount of XRP for matching transactions 
+      description: Returns the amount of XRP for matching transactions - depending on the filter
+      tags:
+        - Aggregate-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          description: user handle which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          description: user handle which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          description: user_id which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_id
+          description: user_id which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the number of matching Transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    xrp:
+                      type: number
+                      example: 5
+        500:
+          description: error
+          schema:
+            type: number
  

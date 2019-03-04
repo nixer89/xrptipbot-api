@@ -4,14 +4,14 @@ import * as db from '../db';
 var tipbotModel: Model<any>;
 
 export async function registerRoute(fastify, opts, next) {
-    fastify.get('/count', async (request, reply) => {
+    fastify.get('/aggregateXRP', async (request, reply) => {
         console.log("query params: " + JSON.stringify(request.query));
         try {
-            let countResult = await getCount(JSON.stringify(request.query));
-            console.log("countResult: " + JSON.stringify(countResult));
-            if(countResult>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ countResult);
-                return { count: countResult}
+            let aggregateResult = await Aggregate(JSON.stringify(request.query));
+            console.log("aggregateResult: " + JSON.stringify(aggregateResult));
+            if(aggregateResult>=0) {
+                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult);
+                return { xrp: aggregateResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
@@ -26,7 +26,7 @@ export async function init() {
     tipbotModel = await db.getNewDbModelTips();
 }
 
-async function getCount(filter:any): Promise<number> {
+async function Aggregate(filter:any): Promise<number> {
     filter = JSON.parse(filter);
     
     let failedResult:number = -1;
@@ -55,15 +55,16 @@ async function getCount(filter:any): Promise<number> {
             } else
                 finalFilter = filter;
 
-            console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
-            let mongoResult:number;
-            if(finalFilter.length <=2)
-                mongoResult = await tipbotModel.estimatedDocumentCount().exec();
-            else
-                mongoResult = await tipbotModel.countDocuments(finalFilter).exec();
+            console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter));
+            let mongoResult = await tipbotModel.aggregate([
+                { $match: finalFilter },
+                { $group: { _id: null, xrp: { $sum: "$xrp" } } }
+            ]);
 
-            if(mongoResult || mongoResult===0)
-                return mongoResult
+            console.log("aggregate result: " + JSON.stringify(mongoResult));
+
+            if(mongoResult && mongoResult.length>0)
+                return mongoResult[0].xrp;
             else
                 return failedResult;
         } catch(err) {
