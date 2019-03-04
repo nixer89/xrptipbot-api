@@ -35,7 +35,7 @@ export function initILPDB(): Promise<boolean> {
 }
 
 async function initDB(collectionName: string): Promise<boolean> {
-    await mongoose.connect('mongodb://127.0.0.1:27017', { useCreateIndex: true});
+    await mongoose.connect('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection = mongoose.connection;
 
     connection.on('open', ()=>{console.log("Connection to MongoDB established")});
@@ -58,7 +58,7 @@ export function getNewDbModelILP(): Promise<mongoose.Model<any>> {
 }
 
 async function getNewDbModel(collectionName: string): Promise<mongoose.Model<any>> {
-    let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017', { useCreateIndex: true});
+    let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection.on('open', ()=>{console.log("Connection to MongoDB established")});
     connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
 
