@@ -11,13 +11,13 @@ export async function registerRoutes(fastify, opts, next) {
             console.log("/count Result: " + JSON.stringify(countResult));
             //check if we have a count result
             if(countResult) {
-                return { count: countResult.length>=0 ? countResult[0].count : 0}
+                return { count: countResult.length > 0 ? countResult[0].count : 0}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
         } catch(err) {
             console.log(JSON.stringify(err));
-            reply.code(500).send('Something went wrong. Please check your query params');
+            reply.code(500).send('Exception occured. Please check your query params');
         }
     });
 
