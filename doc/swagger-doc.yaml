@@ -307,8 +307,8 @@ paths:
             type: string
   /count:
     get:
-      summary: Returns a number of matching transactions 
-      description: Return the number of matching transactions - depending on the filter
+      summary: Returns the count of matching transactions 
+      description: Returns the count of matching transactions - depending on the filter
       tags:
         - Count-API
       produces:
@@ -403,7 +403,199 @@ paths:
           description: error
           schema:
             type: number
-  /aggregateXRP:
+  /count/mostReceivedFrom:
+    get:
+      summary: Return the users which tipped the most to the specified filter in a decending order
+      description: Return the users which tipped the most to the specified filter in a decending order
+      tags:
+        - Count-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          description: user handle which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_id
+          description: user_id which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the users with the amount of XRP received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            _id:
+                              type: string
+                              description: user_id of the XRPTipBot User
+                              example: 2680350607
+                            count:
+                              type: number
+                              description: number of tips which this user has been sent to the specified filter
+                              example: 10
+        500:
+          description: error
+          schema:
+            type: number
+  /count/mostSentTo:
+    get:
+      summary: Return the users which received the most tips from the specified filter in a decending order
+      description: Return the users which received the most tips from the specified filter in a decending order
+      tags:
+        - Count-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          description: user handle which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          description: user_id which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the users and amount of XRP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            _id:
+                              type: string
+                              description: user_id of the XRPTipBot User
+                              example: 2680350607
+                            count:
+                              type: number
+                              description: number of tips which this user has been received from the specified filter
+                              example: 10
+        500:
+          description: error
+          schema:
+            type: number
+  /aggregate/xrp:
     get:
       summary: Returns the amount of XRP for matching transactions 
       description: Returns the amount of XRP for matching transactions - depending on the filter
@@ -501,4 +693,197 @@ paths:
           description: error
           schema:
             type: number
+  /aggregate/xrp/mostReceivedFrom:
+    get:
+      summary: Return the users which sent the most XRP to the specified filter in a decending order
+      description: Return the users which sent the most XRP to the specified filter in a decending order
+      tags:
+        - Aggregate-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          description: user handle which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_id
+          description: user_id which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the users with the amount of XRP received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            _id:
+                              type: string
+                              description: user_id of the XRPTipBot User
+                              example: 2680350607
+                            xrp:
+                              type: number
+                              description: amount of XRP which this user has been sent to the specified filter
+                              example: 10
+        500:
+          description: error
+          schema:
+            type: number
+  /aggregate/xrp/mostSentTo:
+    get:
+      summary: Return the users which received the most XRP from the specified filter in a decending order
+      description: Return the users which received the most XRP from the specified filter in a decending order
+      tags:
+        - Aggregate-API
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          description: user handle which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          description: user_id which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the users and amount of XRP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    result:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                            _id:
+                              type: string
+                              description: user_id of the XRPTipBot User
+                              example: 2680350607
+                            xrp:
+                              type: number
+                              description: amount of XRP which this user has been received from the specified filter
+                              example: 10
+        500:
+          description: error
+          schema:
+            type: number
+
  

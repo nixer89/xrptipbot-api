@@ -3,7 +3,7 @@ import * as db from '../db';
 
 var tipbotModel: Model<any>;
 
-export async function registerRoute(fastify, opts, next) {
+export async function registerRoutes(fastify, opts, next) {
     fastify.get('/feed', async (request, reply) => {
         console.log("query params: " + JSON.stringify(request.query));
         try {

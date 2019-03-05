@@ -4,7 +4,7 @@ import * as feedScan from './feedScan';
 import * as feedRoute from './routes/feed';
 import * as ilpFeedRoute from './routes/ilp-feed';
 import * as countRoute from './routes/count';
-import * as aggregateRoute from './routes/aggregateXRP';
+import * as aggregateRoute from './routes/aggregate';
 
 let feedURL = 'https://www.xrptipbot.com/json/feed';
 let ilpFeedURL = 'https://www.xrptipbot.com/json/ilp-feed';
@@ -13,10 +13,10 @@ console.log("adding cors");
 fastify.register(require('fastify-cors'), {})
 
 console.log("declaring routes")
-fastify.register(feedRoute.registerRoute);
-fastify.register(ilpFeedRoute.registerRoute);
-fastify.register(countRoute.registerRoute);
-fastify.register(aggregateRoute.registerRoute);
+fastify.register(feedRoute.registerRoutes);
+fastify.register(ilpFeedRoute.registerRoutes);
+fastify.register(countRoute.registerRoutes);
+fastify.register(aggregateRoute.registerRoutes);
 
 fastify.get('/', async (request, reply) => {
   reply.code(200).send('I am alive!'); 
