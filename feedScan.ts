@@ -47,20 +47,20 @@ export class FeedScan {
                             try {
                                 await this.tipbotModel.insertMany(feedArray.feed);
                             } catch(err) {
-                                console.log("insertMany error: " + JSON.stringify(err));
+                                //console.log("insertMany error: " + JSON.stringify(err));
                                 //Seems like a new transaction took place in the tip bot and api returns the same element again.
                                 //Mongo throws error to avoid having duplicate keys -> so call the api again with skipping one more item!
                                 return this.scanFeed(skip+=1, limit, continueRequests, newCollection);
                             }
                         } else {
-                            console.log("insert step by step")
+                            //console.log("insert step by step")
                             //we are no new collection so we shouldn`t have too much entries
                             //update step by step and use upsert to insert new entries. If old entry was updated, then stop execution!
                             for(let transaction of feedArray.feed) {
                                 //insert feed to db
                                 transaction.momentAsDate = new Date(transaction.moment);
                                 let result = await this.tipbotModel.updateOne(this.useFilter ? {id: transaction.id} : transaction, transaction, {upsert: true});
-                                console.log("updateResult " + this.tipbotModel.collection.name + ": " + JSON.stringify(result));
+                                //console.log("updateResult " + this.tipbotModel.collection.name + ": " + JSON.stringify(result));
                         
 
                                 if((!this.useFilter && !result['upserted'])

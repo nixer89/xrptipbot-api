@@ -9,7 +9,7 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             let feedResult = await getFeed(JSON.stringify(request.query));
             if(feedResult) {
-                console.log("feed length: " + feedResult.length);
+                //console.log("feed length: " + feedResult.length);
                 return { feed: feedResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  

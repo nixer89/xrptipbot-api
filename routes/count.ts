@@ -8,7 +8,7 @@ export async function registerRoutes(fastify, opts, next) {
         console.log("query params for /count: " + JSON.stringify(request.query));
         try {
             let countResult = await Count(JSON.stringify(request.query), { _id: null, count: { $sum: 1 }}, {count:-1});
-            console.log("/count Result: " + JSON.stringify(countResult));
+            //console.log("/count Result: " + JSON.stringify(countResult));
             //check if we have a count result
             if(countResult) {
                 return { count: countResult.length > 0 ? countResult[0].count : 0}
@@ -26,7 +26,7 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.user_id = {"$ne":null}
             let countResult = await Count(JSON.stringify(request.query), { _id: "$user_id", count: {"$sum": 1}},{count:-1});
-            console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
+            //console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
 
             if(countResult) {
                 return { result: countResult}
@@ -44,7 +44,7 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.to_id = {"$ne":null}
             let countResult = await Count(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
-            console.log("/count/mostSentTo Result: " + JSON.stringify(countResult));
+            //console.log("/count/mostSentTo Result: " + JSON.stringify(countResult));
 
             if(countResult) {
                 return { result: countResult}

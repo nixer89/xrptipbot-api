@@ -8,8 +8,8 @@ export async function registerRoutes(fastify, opts, next) {
         console.log("query params for /aggregate/xrp: " + JSON.stringify(request.query));
         try {
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: null, xrp: { $sum: "$xrp" }}, {xrp:-1});
-            console.log("/aggregate/xrp Result: " + JSON.stringify(aggregateResult));
-            
+            //console.log("/aggregate/xrp Result: " + JSON.stringify(aggregateResult));
+
             if(aggregateResult) {
                 return { xrp: aggregateResult.length > 0 ? aggregateResult[0].xrp : 0}
             } else {
@@ -26,7 +26,7 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.user_id = {"$ne":null}
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$user_id",xrp: {"$sum": "$xrp"}},{xrp:-1});
-            console.log("/aggregate/xrp/mostReceivedFrom Result: " + JSON.stringify(aggregateResult));
+            //console.log("/aggregate/xrp/mostReceivedFrom Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
                 return { result: aggregateResult}
@@ -44,7 +44,7 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.to_id = {"$ne":null}
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$to_id", xrp: {"$sum": "$xrp"}},{xrp:-1});
-            console.log("/aggregate/xrp/mostSentTo Result: " + JSON.stringify(aggregateResult));
+            //console.log("/aggregate/xrp/mostSentTo Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
                 return { result: aggregateResult}
@@ -106,7 +106,7 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
                 { $group: groupOptions }
             ]).sort(sortOptions).limit(limit).exec();
 
-            console.log("aggregate db result: " + JSON.stringify(mongoResult));
+            //console.log("aggregate db result: " + JSON.stringify(mongoResult));
 
             return mongoResult;
 
