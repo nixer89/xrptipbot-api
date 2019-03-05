@@ -8,15 +8,16 @@ export async function registerRoutes(fastify, opts, next) {
         console.log("query params for /aggregate/xrp: " + JSON.stringify(request.query));
         try {
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: null, xrp: { $sum: "$xrp" }}, {xrp:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(aggregateResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult[0].xrp);
-                return { xrp: aggregateResult[0].xrp}
+            console.log("/aggregate/xrp Result: " + JSON.stringify(aggregateResult));
+            
+            if(aggregateResult) {
+                return { xrp: aggregateResult.length > 0 ? aggregateResult[0].xrp : 0}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
-        } catch {
-            reply.code(500).send('Something went wrong. Please check your query params');
+        } catch(err) {
+            console.log(JSON.stringify(err));
+            reply.code(500).send('Exception occured. Please check your query params');
         }
     });
 
@@ -25,14 +26,15 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.user_id = {"$ne":null}
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$user_id",xrp: {"$sum": "$xrp"}},{xrp:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(aggregateResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult.length);
+            console.log("/aggregate/xrp/mostReceivedFrom Result: " + JSON.stringify(aggregateResult));
+
+            if(aggregateResult) {
                 return { result: aggregateResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
-        } catch {
+        } catch(err) {
+            console.log(JSON.stringify(err));
             reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
@@ -42,64 +44,15 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.to_id = {"$ne":null}
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$to_id", xrp: {"$sum": "$xrp"}},{xrp:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(aggregateResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult.length);
+            console.log("/aggregate/xrp/mostSentTo Result: " + JSON.stringify(aggregateResult));
+
+            if(aggregateResult) {
                 return { result: aggregateResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');
             }
-        } catch {
-            reply.code(500).send('Something went wrong. Please check your query params');
-        }
-    });
-
-    fastify.get('/aggregate/tips', async (request, reply) => {
-        console.log("query params for /aggregate/tips: " + JSON.stringify(request.query));
-        try {
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: null, count: { $sum: 1 }}, {count:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(aggregateResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult[0].count);
-                return { count: aggregateResult[0].count}
-            } else {
-                reply.code(500).send('Something went wrong. Please check your query params');  
-            }
-        } catch {
-            reply.code(500).send('Something went wrong. Please check your query params');
-        }
-    });
-
-    fastify.get('/aggregate/tips/mostReceivedFrom', async (request, reply) => {
-        console.log("query params for /aggregate/mostTipsReceived: " + JSON.stringify(request.query));
-        try {
-            request.query.user_id = {"$ne":null}
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$user_id", count: {"$sum": 1}},{count:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(aggregateResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult.length);
-                return { result: aggregateResult}
-            } else {
-                reply.code(500).send('Something went wrong. Please check your query params');  
-            }
-        } catch {
-            reply.code(500).send('Something went wrong. Please check your query params');
-        }
-    });
-
-    fastify.get('/aggregate/tips/mostSentTo', async (request, reply) => {
-        console.log("query params for /aggregate/mostTipsSent: " + JSON.stringify(request.query));
-        try {
-            request.query.to_id = {"$ne":null}
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(aggregateResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ aggregateResult.length);
-                return { result: aggregateResult}
-            } else {
-                reply.code(500).send('Something went wrong. Please check your query params');  
-            }
-        } catch {
+        } catch(err) {
+            console.log(JSON.stringify(err));
             reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
@@ -114,7 +67,6 @@ export async function init() {
 async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {
     filter = JSON.parse(filter);
     
-    let failedResult:number = -1;
     if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
@@ -122,7 +74,7 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
             if(filter.limit) {
                 limit = parseInt(filter.limit);
                 if(isNaN(limit) || limit==0)
-                    return failedResult;
+                    return null;
 
                 delete filter.limit;
             }
@@ -148,22 +100,20 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
             } else
                 finalFilter = filter;
 
-            console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter));
+            console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter) + " and group options: " + JSON.stringify(groupOptions));
             let mongoResult = await tipbotModel.aggregate([
                 { $match: finalFilter },
                 { $group: groupOptions }
             ]).sort(sortOptions).limit(limit).exec();
 
-            //console.log("aggregate result: " + JSON.stringify(mongoResult));
+            console.log("aggregate db result: " + JSON.stringify(mongoResult));
 
-            if(mongoResult && mongoResult.length>0)
-                return mongoResult;
-            else
-                return failedResult;
+            return mongoResult;
+
         } catch(err) {
             console.log(err);
-            return failedResult;
+            return null;
         }
     } else
-        return failedResult;
+        return null;
 }

@@ -8,14 +8,15 @@ export async function registerRoutes(fastify, opts, next) {
         console.log("query params for /count: " + JSON.stringify(request.query));
         try {
             let countResult = await Count(JSON.stringify(request.query), { _id: null, count: { $sum: 1 }}, {count:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(countResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ countResult[0].count);
-                return { count: countResult[0].count}
+            console.log("/count Result: " + JSON.stringify(countResult));
+            //check if we have a count result
+            if(countResult) {
+                return { count: countResult.length>=0 ? countResult[0].count : 0}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
-        } catch {
+        } catch(err) {
+            console.log(JSON.stringify(err));
             reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
@@ -25,14 +26,15 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.user_id = {"$ne":null}
             let countResult = await Count(JSON.stringify(request.query), { _id: "$user_id", count: {"$sum": 1}},{count:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(countResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ countResult.length);
+            console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
+
+            if(countResult) {
                 return { result: countResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
-        } catch {
+        } catch(err) {
+            console.log(JSON.stringify(err));
             reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
@@ -42,14 +44,15 @@ export async function registerRoutes(fastify, opts, next) {
         try {
             request.query.to_id = {"$ne":null}
             let countResult = await Count(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
-            //console.log("aggregate xrp Result: " + JSON.stringify(aggregateResult));
-            if(countResult.length>=0) {
-                console.log("number of documents with filter: '" + JSON.stringify(request.query)+ "' is: "+ countResult.length);
+            console.log("/count/mostSentTo Result: " + JSON.stringify(countResult));
+
+            if(countResult) {
                 return { result: countResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
-        } catch {
+        } catch(err) {
+            console.log(JSON.stringify(err));
             reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
@@ -64,7 +67,6 @@ export async function init() {
 async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {
     filter = JSON.parse(filter);
     
-    let failedResult:number = -1;
     if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
@@ -72,7 +74,7 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
             if(filter.limit) {
                 limit = parseInt(filter.limit);
                 if(isNaN(limit) || limit==0)
-                    return failedResult;
+                    return null;
 
                 delete filter.limit;
             }
@@ -106,14 +108,12 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
 
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 
-            if(mongoResult && mongoResult.length>0)
-                return mongoResult;
-            else
-                return failedResult;
+            return mongoResult;
+
         } catch(err) {
             console.log(err);
-            return failedResult;
+            return null;
         }
     } else
-        return failedResult;
+        return null;
 }
