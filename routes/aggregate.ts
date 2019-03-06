@@ -70,6 +70,13 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
     if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
+
+            if(filter.user)
+                filter.user = { $regex: new RegExp("^" + filter.user.toLowerCase(), "i") }
+
+            if(filter.to)
+                filter.to = { $regex: new RegExp("^" + filter.to.toLowerCase(), "i") }
+            
             let limit:number= 1000000;
             if(filter.limit) {
                 limit = parseInt(filter.limit);

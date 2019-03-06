@@ -31,7 +31,6 @@ export class FeedScan {
     async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean): Promise<void> {
 
         if(continueRequests) {
-            console.log("scanning feed with: " + this.feedURL+'?skip='+skip+'&limit='+limit);
             try {
                 let tipbotFeed = await fetch.default(this.feedURL+'?skip='+skip+'&limit='+limit, {agent: this.useProxy ? this.proxy : null});
     

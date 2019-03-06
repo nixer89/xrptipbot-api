@@ -32,6 +32,13 @@ async function getILPFeed(filter:any): Promise<any[]> {
     if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
+
+            if(filter.user)
+                filter.user = { $regex: new RegExp("^" + filter.user.toLowerCase(), "i") }
+
+            if(filter.to)
+                filter.to = { $regex: new RegExp("^" + filter.to.toLowerCase(), "i") }
+                
             let limit:number;
             if(filter.limit) {
                 limit = parseInt(filter.limit);

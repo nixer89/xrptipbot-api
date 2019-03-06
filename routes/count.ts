@@ -70,6 +70,13 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
     if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
+            
+            if(filter.user)
+                filter.user = { $regex: new RegExp("^" + filter.user.toLowerCase(), "i") }
+
+            if(filter.to)
+                filter.to = { $regex: new RegExp("^" + filter.to.toLowerCase(), "i") }
+
             let limit:number= 1000000;
             if(filter.limit) {
                 limit = parseInt(filter.limit);
@@ -100,7 +107,7 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
             } else
                 finalFilter = filter;
 
-            console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter));
+            console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
             let mongoResult = await tipbotModel.aggregate([
                 { $match: finalFilter },
                 { $group: groupOptions }
