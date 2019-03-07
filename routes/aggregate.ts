@@ -72,10 +72,10 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
             let filterWithOperatorAnd:any[] = [];
 
             if(filter.user)
-                filter.user = { $regex: new RegExp("^" + filter.user.toLowerCase(), "i") }
+                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
 
             if(filter.to)
-                filter.to = { $regex: new RegExp("^" + filter.to.toLowerCase(), "i") }
+                filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
             
             let limit:number= 1000000;
             if(filter.limit) {
