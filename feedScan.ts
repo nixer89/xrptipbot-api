@@ -31,6 +31,8 @@ export class FeedScan {
     async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean): Promise<void> {
 
         if(continueRequests) {
+            //ok we need to continue but set it to false as default
+            continueRequests = false;
             try {
                 console.log("scanning feed with: " + this.feedURL+'?skip='+skip+'&limit='+limit);
                 let tipbotFeed = await fetch.default(this.feedURL+'?skip='+skip+'&limit='+limit, {agent: this.useProxy ? this.proxy : null});
@@ -42,18 +44,20 @@ export class FeedScan {
                     if(feedArray && feedArray.feed && feedArray.feed.length > 0) {
                         if(newCollection) {
                             let tipBotFeed:any[] = feedArray.feed;
-                            tipBotFeed.forEach(transaction => transaction.momentAsDate = new Date(transaction.moment));
-                            //insert all at once and ignore duplicates
+                            //insert all step by step and ignore duplicates
                             try {
-                                await this.tipbotModel.insertMany(feedArray.feed);
+                                for(let transaction of tipBotFeed) {
+                                    //insert feed to db
+                                    transaction.momentAsDate = new Date(transaction.moment);
+                                    await this.tipbotModel.updateOne(transaction, transaction, {upsert: true});
+                                }
                             } catch(err) {
-                                //console.log("insertMany error: " + JSON.stringify(err));
-                                //Seems like a new transaction took place in the tip bot and api returns the same element again.
-                                //Mongo throws error to avoid having duplicate keys -> so call the api again with skipping one more item!
-                                return this.scanFeed(skip+=1, limit, continueRequests, newCollection);
+                                console.log("updateOne error: " + JSON.stringify(err));
+                                //Something went wrong on init. Stop initialization
+                                return this.scanFeed(skip, limit, false, newCollection);
                             }
                         } else {
-                            //console.log("insert step by step")
+                            console.log("insert step by step")
                             //we are no new collection so we shouldn`t have too much entries
                             //update step by step and use upsert to insert new entries. If old entry was updated, then stop execution!
                             for(let transaction of feedArray.feed) {
@@ -65,8 +69,11 @@ export class FeedScan {
 
                                 if((!this.useFilter && !result['upserted'])
                                     || (this.useFilter && (result['nModified'] == 0) && !result['upserted'])) {
-                                        continueRequests = false;
-                                        break;
+                                        //do not break here, just try to do more
+                                        //break;
+                                } else {
+                                    //ok, we have at least one entry - check the feed a second time to avoid missing any transactions
+                                    continueRequests = true;
                                 }
                             }
                         }

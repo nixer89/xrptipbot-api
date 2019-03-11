@@ -28,7 +28,6 @@ export async function init() {
 async function getFeed(filter:any): Promise<any[]> {
     filter = JSON.parse(filter);
     
-    let emptyResult:any[] = [];
     if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
@@ -43,9 +42,23 @@ async function getFeed(filter:any): Promise<any[]> {
             if(filter.limit) {
                 limit = parseInt(filter.limit);
                 if(isNaN(limit) || limit==0)
-                    return emptyResult;
+                    return null;
 
                 delete filter.limit;
+            }
+
+            if(filter.xrp) {
+                if(isNaN(filter.xrp)) {
+                    if(filter.xrp.includes('>='))
+                        filterWithOperatorAnd.push({xrp: {$gte: filter.xrp.substring(2)}});
+                    else if(filter.xrp.includes('<='))
+                        filterWithOperatorAnd.push({xrp: {$lte: filter.xrp.substring(2)}});
+                    else if(filter.xrp.includes('>'))
+                        filterWithOperatorAnd.push({xrp: {$gt: filter.xrp.substring(1)}});
+                    else if(filter.xrp.includes('<'))
+                        filterWithOperatorAnd.push({xrp: {$lt: filter.xrp.substring(1)}});
+                    delete filter.xrp;
+                }
             }
 
             let from_date:Date;
@@ -79,11 +92,11 @@ async function getFeed(filter:any): Promise<any[]> {
             let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
 
             if(mongoResult) return mongoResult
-            else return emptyResult;
+            else return null;
         } catch(err) {
             console.log(err);
-            return emptyResult;
+            return null;
         }
     } else
-        return emptyResult;
+        return null;
 }

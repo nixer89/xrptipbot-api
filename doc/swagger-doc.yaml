@@ -51,7 +51,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -198,7 +198,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for (in DROPS!)
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts (in DROPS!)
           in: query
           required: false
           schema:
@@ -333,7 +333,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -431,7 +431,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -527,7 +527,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -623,7 +623,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -721,7 +721,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -817,7 +817,7 @@ paths:
           schema:
             type: string
         - name: xrp
-          description: exact value of XRP you want to check for
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
           in: query
           required: false
           schema:
@@ -881,6 +881,109 @@ paths:
                               type: number
                               description: amount of XRP which this user has been received from the specified filter
                               example: 10
+        500:
+          description: error
+          schema:
+            type: number
+  /distinct:
+    get:
+      summary: Returns the number of unique entries matching the filter.
+      description: Returns the number of unique entries matching the filter. You always need to provide the field to distinct for
+      tags:
+        - Distinct-API
+      produces:
+        - application/json
+      parameters:
+        - name: distinct
+          description: The field which you want to get the unqiue entries for
+          in: query
+          schema:
+            type: string
+        - name: id
+          description: id of a specific transaction
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: moment
+          description: specific date-time you want to check the feed for
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          description: specific type of the transaction (tip, withdraw, deposit, ...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: xrp
+          description: exact value of XRP you want to check for or use >=, >, <, <= to look for other xrp amounts
+          in: query
+          required: false
+          schema:
+            type: number
+            format: float
+        - name: network
+          description: network you want to check tips for. (twitter, discord, reddit,...)
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user
+          description: user handle which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to
+          description: user handle which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: user_id
+          description: user_id which sent a tip OR received a deposit/withdraw
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_id
+          description: user_id which received a tip
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          description: value to reduce the amount of returned tips
+          in: query
+          required: false
+          schema:
+            type: number
+            fromat: integer
+        - name: from_date
+          description: select tips just from a specific date/time on
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: to_date
+          description: select tips just until a specific date/time
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the number of unique entries depending on the filter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    distinct:
+                      type: number
+                      example: 5
         500:
           description: error
           schema:

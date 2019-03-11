@@ -5,6 +5,7 @@ import * as feedRoute from './routes/feed';
 import * as ilpFeedRoute from './routes/ilp-feed';
 import * as countRoute from './routes/count';
 import * as aggregateRoute from './routes/aggregate';
+import * as distinctRoute from './routes/distinct';
 
 let feedURL = 'https://www.xrptipbot.com/json/feed';
 let ilpFeedURL = 'https://www.xrptipbot.com/json/ilp-feed';
@@ -17,6 +18,7 @@ fastify.register(feedRoute.registerRoutes);
 fastify.register(ilpFeedRoute.registerRoutes);
 fastify.register(countRoute.registerRoutes);
 fastify.register(aggregateRoute.registerRoutes);
+fastify.register(distinctRoute.registerRoutes);
 
 fastify.get('/', async (request, reply) => {
   reply.code(200).send('I am alive!'); 
@@ -46,6 +48,7 @@ const start = async () => {
       await ilpFeedRoute.init();
       await countRoute.init();
       await aggregateRoute.init();
+      await distinctRoute.init();
 
       await fastify.listen(4000,'0.0.0.0');
       console.log(`server listening on ${fastify.server.address().port}`)

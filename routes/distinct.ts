@@ -4,56 +4,20 @@ import * as db from '../db';
 var tipbotModel: Model<any>;
 
 export async function registerRoutes(fastify, opts, next) {
-    fastify.get('/count', async (request, reply) => {
-        console.log("query params for /count: " + JSON.stringify(request.query));
+    fastify.get('/distinct', async (request, reply) => {
+        console.log("query params for /distinct: " + JSON.stringify(request.query));
         try {
-            let countResult = await Count(JSON.stringify(request.query), { _id: null, count: { $sum: 1 }}, {count:-1});
+            let distinctResult = await Distinct(JSON.stringify(request.query));
             //console.log("/count Result: " + JSON.stringify(countResult));
             //check if we have a count result
-            if(countResult) {
-                return { count: countResult.length > 0 ? countResult[0].count : 0}
+            if(distinctResult) {
+                return { distinctCount: distinctResult.length}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
         } catch(err) {
             console.log(JSON.stringify(err));
             reply.code(500).send('Exception occured. Please check your query params');
-        }
-    });
-
-    fastify.get('/count/mostReceivedFrom', async (request, reply) => {
-        console.log("query params for /count/mostReceivedFrom: " + JSON.stringify(request.query));
-        try {
-            request.query.user_id = {"$ne":null}
-            let countResult = await Count(JSON.stringify(request.query), { _id: "$user_id", count: {"$sum": 1}},{count:-1});
-            //console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
-
-            if(countResult) {
-                return { result: countResult}
-            } else {
-                reply.code(500).send('Something went wrong. Please check your query params');  
-            }
-        } catch(err) {
-            console.log(JSON.stringify(err));
-            reply.code(500).send('Something went wrong. Please check your query params');
-        }
-    });
-
-    fastify.get('/count/mostSentTo', async (request, reply) => {
-        console.log("query params for /count/mostSentTo: " + JSON.stringify(request.query));
-        try {
-            request.query.to_id = {"$ne":null}
-            let countResult = await Count(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
-            //console.log("/count/mostSentTo Result: " + JSON.stringify(countResult));
-
-            if(countResult) {
-                return { result: countResult}
-            } else {
-                reply.code(500).send('Something went wrong. Please check your query params');  
-            }
-        } catch(err) {
-            console.log(JSON.stringify(err));
-            reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
 
@@ -64,27 +28,21 @@ export async function init() {
     tipbotModel = await db.getNewDbModelTips();
 }
 
-async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {
+async function Distinct(filter:any): Promise<any> {
     filter = JSON.parse(filter);
     
-    if(tipbotModel) {
+    if(tipbotModel && filter.distinct) {
         try {
             let filterWithOperatorAnd:any[] = [];
+
+            let distinctField = filter.distinct;
+            delete filter.distinct;
             
             if(filter.user)
                 filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
 
             if(filter.to)
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
-
-            let limit:number= 1000000;
-            if(filter.limit) {
-                limit = parseInt(filter.limit);
-                if(isNaN(limit) || limit==0)
-                    return null;
-
-                delete filter.limit;
-            }
 
             if(filter.xrp) {
                 if(isNaN(filter.xrp)) {
@@ -121,11 +79,8 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
             } else
                 finalFilter = filter;
 
-            console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
-            let mongoResult = await tipbotModel.aggregate([
-                { $match: finalFilter },
-                { $group: groupOptions }
-            ]).sort(sortOptions).limit(limit).exec();
+            console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
+            let mongoResult = await tipbotModel.distinct(distinctField,finalFilter).exec();
 
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 

@@ -38,7 +38,7 @@ async function getILPFeed(filter:any): Promise<any[]> {
 
             if(filter.to)
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
-                
+            
             let limit:number;
             if(filter.limit) {
                 limit = parseInt(filter.limit);
@@ -48,6 +48,20 @@ async function getILPFeed(filter:any): Promise<any[]> {
                 delete filter.limit;
             }
 
+            if(filter.xrp) {
+                if(isNaN(filter.xrp)) {
+                    if(filter.xrp.includes('>='))
+                        filterWithOperatorAnd.push({xrp: {$gte: filter.xrp.substring(2)}});
+                    else if(filter.xrp.includes('<='))
+                        filterWithOperatorAnd.push({xrp: {$lte: filter.xrp.substring(2)}});
+                    else if(filter.xrp.includes('>'))
+                        filterWithOperatorAnd.push({xrp: {$gt: filter.xrp.substring(1)}});
+                    else if(filter.xrp.includes('<'))
+                        filterWithOperatorAnd.push({xrp: {$lt: filter.xrp.substring(1)}});
+                    delete filter.xrp;
+                }
+            }
+            
             let from_date:Date;
             if(filter.from_date) {
                 from_date = new Date(filter.from_date)
