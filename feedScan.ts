@@ -23,20 +23,13 @@ export class FeedScan {
         await this.scanFeed(0, isNewCollection ? 1000 : 200, true, isNewCollection);
     
         console.log("feed initialized");
-
-        //if not new collection, scan whole feed 2 min after startup to get back in sync completely
-        if(!isNewCollection)
-            setTimeout(() => this.scanFeed(0, 10000, true, false, true), 120000);
     
         setInterval(() => this.scanFeed(0, 50, true, false), 30000);
-
-        //scan whole feed every 12h to get in sync in case some transactions were missed!
-        setInterval(() => this.scanFeed(0, 10000, true, false, true), 43200000);
     }
 
-    async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean): Promise<void> {
+    async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean): Promise<void> {
 
-        if(continueUntilEnd || continueRequests) {
+        if(continueRequests) {
             //ok we need to continue but set it to false as default
             continueRequests = false;
             try {
@@ -71,20 +64,20 @@ export class FeedScan {
                         }
                     } else {
                         //nothing to do anymore -> cancel execution
-                        continueRequests = continueUntilEnd = false;
+                        continueRequests = false;
                     }
                 } else {
                     //something is wrong -> cancel request
-                    continueRequests = continueUntilEnd = false;
+                    continueRequests = false;
                 }
             } catch (err) {
                 //nothing to do here.
                 console.log("an error occured while calling api or inserting data into db")
                 console.log(JSON.stringify(err));
-                continueRequests = continueUntilEnd = false;
+                continueRequests = false;
             }
     
-            return this.scanFeed(skip+=limit, limit, continueRequests, newCollection, continueUntilEnd);
+            return this.scanFeed(skip+=limit, limit, continueRequests,newCollection);
         }
     
         return Promise.resolve();
