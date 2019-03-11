@@ -4,7 +4,7 @@ import * as HttpsProxyAgent from 'https-proxy-agent';
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
-    useProxy = false;
+    useProxy = true;
 
     tipbotModel: mongoose.Model<any>;
     feedURL: string;
@@ -42,6 +42,7 @@ export class FeedScan {
     
                     //we have entries -> store them in db!
                     if(feedArray && feedArray.feed && feedArray.feed.length > 0) {
+                        continueRequests = true;
                         if(newCollection) {
                             let tipBotFeed:any[] = feedArray.feed;
                             //insert all step by step and ignore duplicates
