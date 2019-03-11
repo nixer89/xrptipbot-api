@@ -23,6 +23,7 @@ var tipBotSchema:mongoose.Schema = new Schema({
 });
 
 tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
+tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
 tipBotSchema = tipBotSchema.index({user: 1, to:1 ,id:-1,}, {unique: true});
 tipBotSchema = tipBotSchema.index({user_id: 1, to_id:1 ,id:-1,}, {unique: true});
 
