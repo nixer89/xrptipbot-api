@@ -4,7 +4,7 @@ import * as HttpsProxyAgent from 'https-proxy-agent';
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
-    useProxy = true;
+    useProxy = false;
 
     tipbotModel: mongoose.Model<any>;
     feedURL: string;
