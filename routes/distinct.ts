@@ -5,7 +5,7 @@ var tipbotModel: Model<any>;
 
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/distinct', async (request, reply) => {
-        console.log("query params for /distinct: " + JSON.stringify(request.query));
+        //console.log("query params for /distinct: " + JSON.stringify(request.query));
         try {
             let distinctResult = await Distinct(JSON.stringify(request.query));
             //console.log("/count Result: " + JSON.stringify(countResult));
@@ -79,7 +79,7 @@ async function Distinct(filter:any): Promise<any> {
             } else
                 finalFilter = filter;
 
-            console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
+            //console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
             let mongoResult = await tipbotModel.distinct(distinctField,finalFilter).exec();
 
             //console.log("aggregate result: " + JSON.stringify(mongoResult));

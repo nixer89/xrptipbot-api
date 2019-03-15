@@ -4,6 +4,7 @@ import { CommandCursor } from 'mongodb';
 let connection: mongoose.Connection;
 let tipCollectionName:string = "FeedCollection";
 let ilpCollectionName:string = "ILPFeedCollection";
+let tipCollectionNameStandarized:string = "FeedCollectionStandarized";
 var Schema = mongoose.Schema;
 
 var tipBotSchema:mongoose.Schema = new Schema({
@@ -35,6 +36,10 @@ export function initILPDB(): Promise<boolean> {
     return initDB(ilpCollectionName);
 }
 
+export function initTipDBStandarized(): Promise<boolean> {
+    return initDB(tipCollectionNameStandarized);
+}
+
 async function initDB(collectionName: string): Promise<boolean> {
     await mongoose.connect('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection = mongoose.connection;
@@ -56,6 +61,10 @@ export function getNewDbModelTips(): Promise<mongoose.Model<any>> {
 
 export function getNewDbModelILP(): Promise<mongoose.Model<any>> {
     return getNewDbModel(ilpCollectionName);
+}
+
+export function getNewDbModelTipsStandarized(): Promise<mongoose.Model<any>> {
+    return getNewDbModel(tipCollectionNameStandarized);
 }
 
 async function getNewDbModel(collectionName: string): Promise<mongoose.Model<any>> {

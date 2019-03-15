@@ -5,7 +5,7 @@ var tipbotModel: Model<any>;
 
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/feed', async (request, reply) => {
-        console.log("query params: " + JSON.stringify(request.query));
+        //console.log("query params: " + JSON.stringify(request.query));
         try {
             let feedResult = await getFeed(JSON.stringify(request.query));
             if(feedResult) {
@@ -88,7 +88,7 @@ async function getFeed(filter:any): Promise<any[]> {
             } else
                 finalFilter = filter;
 
-            console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
+            //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
             let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
 
             if(mongoResult) return mongoResult

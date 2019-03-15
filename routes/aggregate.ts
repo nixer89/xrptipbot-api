@@ -5,7 +5,7 @@ var tipbotModel: Model<any>;
 
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/aggregate/xrp', async (request, reply) => {
-        console.log("query params for /aggregate/xrp: " + JSON.stringify(request.query));
+        //console.log("query params for /aggregate/xrp: " + JSON.stringify(request.query));
         try {
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: null, xrp: { $sum: "$xrp" }}, {xrp:-1});
             //console.log("/aggregate/xrp Result: " + JSON.stringify(aggregateResult));
@@ -22,7 +22,7 @@ export async function registerRoutes(fastify, opts, next) {
     });
 
     fastify.get('/aggregate/xrp/mostReceivedFrom', async (request, reply) => {
-        console.log("query params for /aggregate/mostXRPReceived: " + JSON.stringify(request.query));
+        //console.log("query params for /aggregate/mostXRPReceived: " + JSON.stringify(request.query));
         try {
             request.query.user_id = {"$ne":null}
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$user_id",xrp: {"$sum": "$xrp"}},{xrp:-1});
@@ -40,7 +40,7 @@ export async function registerRoutes(fastify, opts, next) {
     });
 
     fastify.get('/aggregate/xrp/mostSentTo', async (request, reply) => {
-        console.log("query params for /aggregate/mostXRPSent: " + JSON.stringify(request.query));
+        //console.log("query params for /aggregate/mostXRPSent: " + JSON.stringify(request.query));
         try {
             request.query.to_id = {"$ne":null}
             let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$to_id", xrp: {"$sum": "$xrp"}},{xrp:-1});
@@ -121,7 +121,7 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
             } else
                 finalFilter = filter;
 
-            console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter) + " and group options: " + JSON.stringify(groupOptions));
+            //console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter) + " and group options: " + JSON.stringify(groupOptions));
             let mongoResult = await tipbotModel.aggregate([
                 { $match: finalFilter },
                 { $group: groupOptions }

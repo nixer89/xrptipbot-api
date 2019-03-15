@@ -5,7 +5,7 @@ var tipbotModel: Model<any>;
 
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/count', async (request, reply) => {
-        console.log("query params for /count: " + JSON.stringify(request.query));
+        //console.log("query params for /count: " + JSON.stringify(request.query));
         try {
             let countResult = await Count(JSON.stringify(request.query), { _id: null, count: { $sum: 1 }}, {count:-1});
             //console.log("/count Result: " + JSON.stringify(countResult));
@@ -22,11 +22,10 @@ export async function registerRoutes(fastify, opts, next) {
     });
 
     fastify.get('/count/mostReceivedFrom', async (request, reply) => {
-        console.log("query params for /count/mostReceivedFrom: " + JSON.stringify(request.query));
+        //console.log("query params for /count/mostReceivedFrom: " + JSON.stringify(request.query));
         try {
-            request.query.user_id = {"$ne":null}
-            let countResult = await Count(JSON.stringify(request.query), { _id: "$user_id", count: {"$sum": 1}},{count:-1});
-            //console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
+            let countResult = await Count(JSON.stringify(request.query), { _id: { user: '$user', user_id: '$user_id', network: '$network' }, count: {"$sum": 1}},{count:-1});
+            console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
 
             if(countResult) {
                 return { result: countResult}
@@ -40,7 +39,7 @@ export async function registerRoutes(fastify, opts, next) {
     });
 
     fastify.get('/count/mostSentTo', async (request, reply) => {
-        console.log("query params for /count/mostSentTo: " + JSON.stringify(request.query));
+        //console.log("query params for /count/mostSentTo: " + JSON.stringify(request.query));
         try {
             request.query.to_id = {"$ne":null}
             let countResult = await Count(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
@@ -121,7 +120,7 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
             } else
                 finalFilter = filter;
 
-            console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
+            //console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
             let mongoResult = await tipbotModel.aggregate([
                 { $match: finalFilter },
                 { $group: groupOptions }

@@ -25,6 +25,7 @@
     "fastify-swagger": "^1.2.0",
     "https-proxy-agent": "^2.2.1",
     "mongoose": "^5.4.16",
+    "mosca": "^2.8.3",
     "node-fetch": "^2.3.0"
   },
   "devDependencies": {

@@ -37,13 +37,20 @@ fastify.register(require('fastify-swagger'), {
 // Run the server!
 const start = async () => {
     try {
-      //init feed first!
+      //init db
       let isNewCollectionTips = await db.initTipDB();
       let isNewCollectionILP = await db.initILPDB();
-      let tipsFeed = new feedScan.FeedScan(await db.getNewDbModelTips(), feedURL);
+      await db.initTipDBStandarized();
+
+      //init feed and standarized feed
+      let tipsFeed = new feedScan.FeedScan(await db.getNewDbModelTips(), feedURL, await db.getNewDbModelTipsStandarized());
+      await tipsFeed.initFeed(isNewCollectionTips, true);
+
+      //init ILP feed
       let ilpFeed = new feedScan.FeedScan(await db.getNewDbModelILP(), ilpFeedURL);
-      await tipsFeed.initFeed(isNewCollectionTips);
       await ilpFeed.initFeed(isNewCollectionILP);
+
+      //init routes
       await feedRoute.init();
       await ilpFeedRoute.init();
       await countRoute.init();
