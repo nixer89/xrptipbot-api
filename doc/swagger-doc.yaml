@@ -18,7 +18,7 @@ info:
    [All Tips WietseWind received](https://xrptipbot-api.siedentopf.xyz/feed?to=WietseWind&result_fields=moment,user,to,xrp)
 
    As the original XRPTipBot-Feed built by [@WietseWind](https://twitter.com/WietseWind), the API provides it`s data in a decending manner, ordered by date.
-  version: 1.2.3
+  version: 1.3.0
 tags:
   - name: XRPTipBot API
     description: This API is dedicated to the XRPTipBot. It is still in beta and will be improved over time.

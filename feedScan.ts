@@ -31,7 +31,7 @@ export class FeedScan {
 
         //if not new collection, scan whole feed 2 min after startup to get back in sync completely
         if(!isNewCollection && !this.useProxy)
-            //setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 120000);
+            setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 120000);
     
         setInterval(() => this.scanFeed(0, 50, true, false, false, updateStandarized, useMQTT), 30000);
 
