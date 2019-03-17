@@ -40,15 +40,15 @@ const start = async () => {
       //init db
       let isNewCollectionTips = await db.initTipDB();
       let isNewCollectionILP = await db.initILPDB();
-      await db.initTipDBStandarized();
+      let isNewCollectionStandard = await db.initTipDBStandarized();
 
       //init feed and standarized feed
       let tipsFeed = new feedScan.FeedScan(await db.getNewDbModelTips(), feedURL, await db.getNewDbModelTipsStandarized());
-      await tipsFeed.initFeed(isNewCollectionTips, true, true);
+      await tipsFeed.initFeed(isNewCollectionTips||isNewCollectionStandard, true, true);
 
       //init ILP feed
       let ilpFeed = new feedScan.FeedScan(await db.getNewDbModelILP(), ilpFeedURL);
-      await ilpFeed.initFeed(isNewCollectionILP);
+      await ilpFeed.initFeed(isNewCollectionILP, false);
 
       //init routes
       await feedRoute.init();

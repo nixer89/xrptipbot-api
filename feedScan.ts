@@ -42,7 +42,7 @@ export class FeedScan {
 
     async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean, useMQTT?: boolean): Promise<void> {
 
-        if(continueUntilEnd || continueRequests) {
+        if(continueRequests || continueUntilEnd) {
             //ok we need to continue but set it to false as default
             continueRequests = false;
             try {
@@ -73,19 +73,7 @@ export class FeedScan {
 
                                 //ok, so we are a normal "scan" and we have *new* entries
                                 if(useMQTT && !newCollection && !continueUntilEnd && result['upserted']) {
-                                    //publish a message with the user sending the tip and one message receiving the tip
-                                    console.log("we have a new tranaction, publish is to MQTT: " + JSON.stringify(transaction));
-                                    if(transaction.user) {
-                                        let user_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.user_network : transaction.network;
-                                        console.log("publishing user: " + '/'+user_network+'/'+transaction.user+'/sending')
-                                        mqtt.publishMesssage('/'+user_network+'/'+transaction.user+'/sending', JSON.stringify(transaction));
-                                    }
-
-                                    if(transaction.to) {
-                                        let to_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.to_network : transaction.network;
-                                        console.log("publishing to: " + '/'+to_network+'/'+transaction.to+'/receiving')
-                                        mqtt.publishMesssage('/'+to_network+'/'+transaction.to+'/receiving', JSON.stringify(transaction));
-                                    }
+                                    this.publishTransactionOnMQTT(transaction);
                                 }
                                 
                                 //continue request when at least one entry was updated or insered
@@ -116,6 +104,27 @@ export class FeedScan {
         }
     
         return Promise.resolve();
+    }
+
+    publishTransactionOnMQTT(transaction: any) {
+        //publish a message with the user sending the tip and one message receiving the tip
+        console.log("we have a new tranaction, publish it to MQTT: " + JSON.stringify(transaction));
+        if(transaction.type==='deposit' || transaction.type==='withdraw') {
+            console.log("publishing user: " + transaction.network+'/'+transaction.user+'/sent')
+            mqtt.publishMesssage(transaction.network+'/'+transaction.user+'/'+transaction.type, JSON.stringify(transaction));
+        } else {
+            if(transaction.user) {
+                let user_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.user_network : transaction.network;
+                console.log("publishing user: " + user_network+'/'+transaction.user+'/sent')
+                mqtt.publishMesssage(user_network+'/'+transaction.user+'/sent', JSON.stringify(transaction));
+            }
+
+            if(transaction.to) {
+                let to_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.to_network : transaction.network;
+                console.log("publishing to: " + to_network+'/'+transaction.to+'/received')
+                mqtt.publishMesssage(to_network+'/'+transaction.to+'/received', JSON.stringify(transaction));
+            }
+        }
     }
 
     standarizeTransaction(transaction: any): any {
