@@ -5,7 +5,7 @@ import * as mqtt from './mqtt-broker';
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
-    useProxy = true;
+    useProxy = false;
 
     tipbotModel: mongoose.Model<any>;
     tipbotModelStandarized: mongoose.Model<any>;
@@ -31,16 +31,16 @@ export class FeedScan {
 
         //if not new collection, scan whole feed 2 min after startup to get back in sync completely
         if(!isNewCollection && !this.useProxy)
-            setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 120000);
+            //setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 120000);
     
-        setInterval(() => this.scanFeed(0, 50, true, false, false, updateStandarized), 30000);
+        setInterval(() => this.scanFeed(0, 50, true, false, false, updateStandarized, useMQTT), 30000);
 
         //scan whole feed every 12h to get in sync in case some transactions were missed!
         if(!this.useProxy)
             setInterval(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 43200000);
     }
 
-    async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean): Promise<void> {
+    async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean, useMQTT?: boolean): Promise<void> {
 
         if(continueUntilEnd || continueRequests) {
             //ok we need to continue but set it to false as default
@@ -72,7 +72,7 @@ export class FeedScan {
                                 }
 
                                 //ok, so we are a normal "scan" and we have *new* entries
-                                if(!newCollection && !continueUntilEnd && result['upserted']) {
+                                if(useMQTT && !newCollection && !continueUntilEnd && result['upserted']) {
                                     //publish a message with the user sending the tip and one message receiving the tip
                                     console.log("we have a new tranaction, publish is to MQTT: " + JSON.stringify(transaction));
                                     if(transaction.user) {

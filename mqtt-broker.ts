@@ -29,4 +29,5 @@ export function init() {
 export function publishMesssage(topic: string, payload: any) {
     console.log("publishing message")
     server.publish({topic: topic, payload: payload, qos:0, retain: false})
+    console.log("publised message")
 }

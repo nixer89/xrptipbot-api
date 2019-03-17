@@ -44,7 +44,7 @@ const start = async () => {
 
       //init feed and standarized feed
       let tipsFeed = new feedScan.FeedScan(await db.getNewDbModelTips(), feedURL, await db.getNewDbModelTipsStandarized());
-      await tipsFeed.initFeed(isNewCollectionTips, true);
+      await tipsFeed.initFeed(isNewCollectionTips, true, true);
 
       //init ILP feed
       let ilpFeed = new feedScan.FeedScan(await db.getNewDbModelILP(), ilpFeedURL);
