@@ -16,11 +16,6 @@ let moscaSettings = {
   
 };
 
-// fired when the mqtt server is ready
-function setup() {
-    console.log('Mosca server is up and running')
-}
-
 export function init() {
     server = new mosca.Server(moscaSettings);	//here we start mosca
     server.on('clientConnected', function(client) {
@@ -30,6 +25,16 @@ export function init() {
 }
 
 export function publishMesssage(topic: string, payload: any) {
-    console.log("publishing message: " + JSON.stringify(payload));
     server.publish({topic: topic, payload: payload, qos:0, retain: false})
+}
+
+//no one except the server is allowed to publish
+var authorizePublish = function(client, topic, payload, callback) {
+    callback(null, false);
+}
+
+// fired when the mqtt server is ready
+function setup() {
+    server.authorizePublish = authorizePublish;
+    console.log('Mosca server is up and running')
 }

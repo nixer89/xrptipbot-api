@@ -25,7 +25,7 @@ export class FeedScan {
             mqtt.init();
         
         //initialize feed on startup -> create new collection or add missing transactions
-        await this.scanFeed(0, isNewCollection ? 1000 : 200, true, isNewCollection, false, updateStandarized);
+        await this.scanFeed(0, isNewCollection ? 1000 : 200, true, isNewCollection, false, updateStandarized, !isNewCollection && useMQTT);
     
         console.log("feed initialized");
 
@@ -58,7 +58,7 @@ export class FeedScan {
                             //we have an array so run at least one more time if we are in initialization phase
                             continueRequests = true;
 
-                        let tipBotFeed:any[] = feedArray.feed;
+                        let tipBotFeed:any[] = feedArray.feed.reverse();
                         //insert all step by step and ignore duplicates
                         try {
                             for(let transaction of tipBotFeed) {
@@ -108,21 +108,26 @@ export class FeedScan {
 
     publishTransactionOnMQTT(transaction: any) {
         //publish a message with the user sending the tip and one message receiving the tip
-        console.log("we have a new tranaction, publish it to MQTT: " + JSON.stringify(transaction));
         if(transaction.type==='deposit' || transaction.type==='withdraw') {
-            console.log("publishing user: " + transaction.network+'/'+transaction.user+'/sent')
-            mqtt.publishMesssage(transaction.network+'/'+transaction.user+'/'+transaction.type, JSON.stringify(transaction));
+            console.log("publishing: " + transaction.type+'/'+transaction.network+'/'+transaction.user)
+            mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/'+transaction.user, JSON.stringify(transaction));
+            mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/*', JSON.stringify(transaction));
+            mqtt.publishMesssage(transaction.type+'/*', JSON.stringify(transaction));
         } else {
             if(transaction.user) {
                 let user_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.user_network : transaction.network;
-                console.log("publishing user: " + user_network+'/'+transaction.user+'/sent')
-                mqtt.publishMesssage(user_network+'/'+transaction.user+'/sent', JSON.stringify(transaction));
+                console.log("publishing: " + transaction.type+'/sent/'+user_network+'/'+transaction.user)
+                mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/'+transaction.user, JSON.stringify(transaction));
+                mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/*', JSON.stringify(transaction));
+                mqtt.publishMesssage(transaction.type+'/sent/*', JSON.stringify(transaction));
             }
 
             if(transaction.to) {
                 let to_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.to_network : transaction.network;
-                console.log("publishing to: " + to_network+'/'+transaction.to+'/received')
-                mqtt.publishMesssage(to_network+'/'+transaction.to+'/received', JSON.stringify(transaction));
+                console.log("publishing: " + transaction.type+'/received/'+to_network+'/'+transaction.to)
+                mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/'+transaction.to, JSON.stringify(transaction));
+                mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/*', JSON.stringify(transaction));
+                mqtt.publishMesssage(transaction.type+'/received/*', JSON.stringify(transaction));
             }
         }
     }
