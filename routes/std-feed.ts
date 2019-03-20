@@ -8,41 +8,44 @@ export async function init() {
 }
 
 export async function registerRoutes(fastify, opts, next) {
-    fastify.get('/distinct', async (request, reply) => {
-        //console.log("query params for /distinct: " + JSON.stringify(request.query));
+    fastify.get('/std-feed', async (request, reply) => {
+        //console.log("query params: " + JSON.stringify(request.query));
         try {
-            let distinctResult = await Distinct(JSON.stringify(request.query));
-            //console.log("/count Result: " + JSON.stringify(countResult));
-            //check if we have a count result
-            if(distinctResult) {
-                return { distinctCount: distinctResult.length}
+            let feedResult = await getStandarizedFeed(JSON.stringify(request.query));
+            if(feedResult) {
+                //console.log("feed length: " + feedResult.length);
+                return { feed: feedResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
-        } catch(err) {
-            console.log(JSON.stringify(err));
-            reply.code(500).send('Exception occured. Please check your query params');
+        } catch {
+            reply.code(500).send('Something went wrong. Please check your query params');
         }
     });
-
     next()
 }
 
-async function Distinct(filter:any): Promise<any> {
+async function getStandarizedFeed(filter:any): Promise<any[]> {
     filter = JSON.parse(filter);
     
-    if(tipbotModel && filter.distinct) {
+    if(tipbotModel) {
         try {
             let filterWithOperatorAnd:any[] = [];
 
-            let distinctField = filter.distinct;
-            delete filter.distinct;
-            
             if(filter.user)
                 filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
 
             if(filter.to)
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+
+            let limit:number;
+            if(filter.limit) {
+                limit = parseInt(filter.limit);
+                if(isNaN(limit) || limit==0)
+                    return null;
+
+                delete filter.limit;
+            }
 
             if(filter.xrp) {
                 if(isNaN(filter.xrp)) {
@@ -72,6 +75,12 @@ async function Distinct(filter:any): Promise<any> {
                 delete filter.to_date;
             }
 
+            let result_fields:string;
+            if(filter.result_fields) {
+                result_fields = filter.result_fields.trim().replace(/,/g,' ');
+                delete filter.result_fields;
+            }
+
             let finalFilter:any;
             if(filterWithOperatorAnd.length>0) {
                 filterWithOperatorAnd.push(filter)
@@ -79,13 +88,11 @@ async function Distinct(filter:any): Promise<any> {
             } else
                 finalFilter = filter;
 
-            //console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
-            let mongoResult = await tipbotModel.distinct(distinctField,finalFilter).exec();
+            //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
+            let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
 
-            //console.log("aggregate result: " + JSON.stringify(mongoResult));
-
-            return mongoResult;
-
+            if(mongoResult) return mongoResult
+            else return null;
         } catch(err) {
             console.log(err);
             return null;

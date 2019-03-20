@@ -3,6 +3,10 @@ import * as db from '../db';
 
 var tipbotModel: Model<any>;
 
+export async function init() {
+    tipbotModel = await db.getNewDbModelTipsStandarized();
+}
+
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/count', async (request, reply) => {
         //console.log("query params for /count: " + JSON.stringify(request.query));
@@ -57,10 +61,6 @@ export async function registerRoutes(fastify, opts, next) {
     });
 
     next()
-}
-
-export async function init() {
-    tipbotModel = await db.getNewDbModelTips();
 }
 
 async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {

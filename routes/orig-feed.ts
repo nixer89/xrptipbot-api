@@ -3,6 +3,10 @@ import * as db from '../db';
 
 var tipbotModel: Model<any>;
 
+export async function init() {
+    tipbotModel = await db.getNewDbModelTips();
+}
+
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/feed', async (request, reply) => {
         //console.log("query params: " + JSON.stringify(request.query));
@@ -19,10 +23,6 @@ export async function registerRoutes(fastify, opts, next) {
         }
     });
     next()
-}
-
-export async function init() {
-    tipbotModel = await db.getNewDbModelTips();
 }
 
 async function getFeed(filter:any): Promise<any[]> {

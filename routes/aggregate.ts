@@ -3,6 +3,10 @@ import * as db from '../db';
 
 var tipbotModel: Model<any>;
 
+export async function init() {
+    tipbotModel = await db.getNewDbModelTipsStandarized();
+}
+
 export async function registerRoutes(fastify, opts, next) {
     fastify.get('/aggregate/xrp', async (request, reply) => {
         //console.log("query params for /aggregate/xrp: " + JSON.stringify(request.query));
@@ -58,10 +62,6 @@ export async function registerRoutes(fastify, opts, next) {
     });
 
     next()
-}
-
-export async function init() {
-    tipbotModel = await db.getNewDbModelTips();
 }
 
 async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {

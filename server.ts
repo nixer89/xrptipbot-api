@@ -1,8 +1,9 @@
 const fastify = require('fastify')({ trustProxy: true })
 import * as db from './db';
 import * as feedScan from './feedScan';
-import * as feedRoute from './routes/feed';
+import * as origFeedRoute from './routes/orig-feed';
 import * as ilpFeedRoute from './routes/ilp-feed';
+import * as stdFeedRoute from './routes/std-feed';
 import * as countRoute from './routes/count';
 import * as aggregateRoute from './routes/aggregate';
 import * as distinctRoute from './routes/distinct';
@@ -14,8 +15,9 @@ console.log("adding cors");
 fastify.register(require('fastify-cors'), {})
 
 console.log("declaring routes")
-fastify.register(feedRoute.registerRoutes);
+fastify.register(origFeedRoute.registerRoutes);
 fastify.register(ilpFeedRoute.registerRoutes);
+fastify.register(stdFeedRoute.registerRoutes);
 fastify.register(countRoute.registerRoutes);
 fastify.register(aggregateRoute.registerRoutes);
 fastify.register(distinctRoute.registerRoutes);
@@ -51,8 +53,9 @@ const start = async () => {
       await ilpFeed.initFeed(isNewCollectionILP, false);
 
       //init routes
-      await feedRoute.init();
+      await origFeedRoute.init();
       await ilpFeedRoute.init();
+      await stdFeedRoute.init();
       await countRoute.init();
       await aggregateRoute.init();
       await distinctRoute.init();

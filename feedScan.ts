@@ -100,7 +100,7 @@ export class FeedScan {
                 continueRequests = continueUntilEnd = false;
             }
     
-            return this.scanFeed(skip+=limit, limit, continueRequests, newCollection, continueUntilEnd, updateStandarized);
+            return this.scanFeed(skip+=limit, limit, continueRequests, newCollection, continueUntilEnd, updateStandarized, useMQTT);
         }
     
         return Promise.resolve();
@@ -133,19 +133,29 @@ export class FeedScan {
     }
 
     standarizeTransaction(transaction: any): any {
+        let originalTransaction = JSON.parse(transaction);
         let standarizedTransaction = JSON.parse(transaction);
         //both users are on same network
         if(standarizedTransaction.network === 'discord') {
-            standarizedTransaction.user = transaction.user_id
-            standarizedTransaction.user_id = transaction.user;
-            standarizedTransaction.to = transaction.to_id
-            standarizedTransaction.to_id = transaction.to;
+            standarizedTransaction.user = originalTransaction.user_id
+            standarizedTransaction.user_id = originalTransaction.user;
+            standarizedTransaction.to = originalTransaction.to_id
+            standarizedTransaction.to_id = originalTransaction.to;
         } else if(standarizedTransaction.user_network === 'discord') {
-            standarizedTransaction.user = transaction.user_id
-            standarizedTransaction.user_id = transaction.user;
+            standarizedTransaction.user = originalTransaction.user_id
+            standarizedTransaction.user_id = originalTransaction.user;
         } else if(standarizedTransaction.to_network === 'discord') {
-            standarizedTransaction.to = transaction.to_id
-            standarizedTransaction.to_id = transaction.to;
+            standarizedTransaction.to = originalTransaction.to_id
+            standarizedTransaction.to_id = originalTransaction.to;
+        }
+
+        if(standarizedTransaction.network === 'reddit') {
+            standarizedTransaction.user_id = originalTransaction.user;
+            standarizedTransaction.to_id = originalTransaction.to;
+        } else if(standarizedTransaction.user_network === 'reddit') {
+            standarizedTransaction.user_id = originalTransaction.user;
+        } else if(standarizedTransaction.to_network === 'reddit') {
+            standarizedTransaction.to_id = originalTransaction.to;
         }
 
         return standarizedTransaction;
