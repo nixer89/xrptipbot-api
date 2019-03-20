@@ -40,7 +40,7 @@ export class FeedScan {
             setInterval(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 43200000);
     }
 
-    async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean, useMQTT?: boolean): Promise<void> {
+    async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean, useMQTT?: boolean, oneAndOnlyRepeat?: boolean): Promise<void> {
 
         if(continueRequests || continueUntilEnd) {
             //ok we need to continue but set it to false as default
@@ -97,6 +97,11 @@ export class FeedScan {
                 //nothing to do here.
                 console.log("an error occured while calling api or inserting data into db")
                 console.log(JSON.stringify(err));
+                //repeat only one time if we have an json error -> may not occure a second time!
+                if(!oneAndOnlyRepeat && err && err.message && err.message.startsWith("invalid json response body")) {
+                    oneAndOnlyRepeat = true;
+                    return this.scanFeed(skip, limit, continueRequests, newCollection, continueUntilEnd, updateStandarized, useMQTT, oneAndOnlyRepeat);
+                }
                 continueRequests = continueUntilEnd = false;
             }
     
