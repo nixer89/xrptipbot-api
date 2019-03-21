@@ -30,14 +30,13 @@ export class FeedScan {
         console.log("feed initialized");
 
         //if not new collection, scan whole feed 2 min after startup to get back in sync completely
-        if(!isNewCollection && !this.useProxy)
+        if(!isNewCollection)
             setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 120000);
     
         setInterval(() => this.scanFeed(0, 50, true, false, false, updateStandarized, useMQTT), 30000);
 
         //scan whole feed every 12h to get in sync in case some transactions were missed!
-        if(!this.useProxy)
-            setInterval(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 43200000);
+        setInterval(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 43200000);
     }
 
     async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean, useMQTT?: boolean, oneAndOnlyRepeat?: boolean): Promise<void> {
@@ -162,6 +161,29 @@ export class FeedScan {
         } else if(standarizedTransaction.to_network === 'reddit') {
             standarizedTransaction.to_id = originalTransaction.to;
         }
+
+        //handle null values for user_id for all networks -> paperaccount?
+        if(standarizedTransaction.user && !standarizedTransaction.user_id)
+            standarizedTransaction.user_id = standarizedTransaction.user;
+        
+        if(standarizedTransaction.user_id && !standarizedTransaction.user)
+            standarizedTransaction.user = standarizedTransaction.user_id;
+
+        if(standarizedTransaction.to && !standarizedTransaction.to_id)
+            standarizedTransaction.to_id = standarizedTransaction.to;
+        
+        if(standarizedTransaction.to_id && !standarizedTransaction.to)
+            standarizedTransaction.to = standarizedTransaction.to_id;
+
+        if(standarizedTransaction.network != 'btn'
+            && standarizedTransaction.network != 'app'
+                && standarizedTransaction.network != 'internal') {
+                    if(!standarizedTransaction.user_network)
+                        standarizedTransaction.user_network = standarizedTransaction.network;
+
+                    if(!standarizedTransaction.to_network)
+                        standarizedTransaction.to_network = standarizedTransaction.network;
+                }
 
         return standarizedTransaction;
     }

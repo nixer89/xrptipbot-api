@@ -27,6 +27,7 @@ export async function registerRoutes(fastify, opts, next) {
 
     fastify.get('/count/mostReceivedFrom', async (request, reply) => {
         //console.log("query params for /count/mostReceivedFrom: " + JSON.stringify(request.query));
+        request.query.user_id = {"$ne":null}
         try {
             let countResult = await Count(JSON.stringify(request.query), { _id: '$user_id', count: {"$sum": 1}},{count:-1});
             console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
