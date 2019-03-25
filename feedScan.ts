@@ -139,27 +139,39 @@ export class FeedScan {
     standarizeTransaction(transaction: any): any {
         let originalTransaction = JSON.parse(transaction);
         let standarizedTransaction = JSON.parse(transaction);
+        //check discord
         //both users are on same network
         if(standarizedTransaction.network === 'discord') {
             standarizedTransaction.user = originalTransaction.user_id
             standarizedTransaction.user_id = originalTransaction.user;
             standarizedTransaction.to = originalTransaction.to_id
             standarizedTransaction.to_id = originalTransaction.to;
-        } else if(standarizedTransaction.user_network === 'discord') {
-            standarizedTransaction.user = originalTransaction.user_id
-            standarizedTransaction.user_id = originalTransaction.user;
-        } else if(standarizedTransaction.to_network === 'discord') {
-            standarizedTransaction.to = originalTransaction.to_id
-            standarizedTransaction.to_id = originalTransaction.to;
+        } else {
+            //check if one or both users are on discord -> transaction may happened via app/button
+            if(standarizedTransaction.user_network === 'discord') {
+                standarizedTransaction.user = originalTransaction.user_id
+                standarizedTransaction.user_id = originalTransaction.user;
+            }
+            
+            if(standarizedTransaction.to_network === 'discord') {
+                standarizedTransaction.to = originalTransaction.to_id
+                standarizedTransaction.to_id = originalTransaction.to;
+            }
         }
 
+        //check reddit
         if(standarizedTransaction.network === 'reddit') {
             standarizedTransaction.user_id = originalTransaction.user;
             standarizedTransaction.to_id = originalTransaction.to;
-        } else if(standarizedTransaction.user_network === 'reddit') {
-            standarizedTransaction.user_id = originalTransaction.user;
-        } else if(standarizedTransaction.to_network === 'reddit') {
-            standarizedTransaction.to_id = originalTransaction.to;
+        } else {
+            //check if one or both users are on discord -> transaction may happened via app/button
+            if(standarizedTransaction.user_network === 'reddit') {
+                standarizedTransaction.user_id = originalTransaction.user;
+            }
+            
+            if(standarizedTransaction.to_network === 'reddit') {
+                standarizedTransaction.to_id = originalTransaction.to;
+            }
         }
 
         //handle null values for user_id for all networks -> paperaccount?
@@ -175,12 +187,14 @@ export class FeedScan {
         if(standarizedTransaction.to_id && !standarizedTransaction.to)
             standarizedTransaction.to = standarizedTransaction.to_id;
 
+
+        //set user_network and to_network when transaction happened on same network
         if(standarizedTransaction.network != 'btn'
             && standarizedTransaction.network != 'app'
                 && standarizedTransaction.network != 'internal'
                     && standarizedTransaction.type != 'deposit'
                         && standarizedTransaction.type != 'withdraw') {
-                            
+
                     if(!standarizedTransaction.user_network)
                         standarizedTransaction.user_network = standarizedTransaction.network;
 
