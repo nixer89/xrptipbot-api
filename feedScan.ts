@@ -177,7 +177,10 @@ export class FeedScan {
 
         if(standarizedTransaction.network != 'btn'
             && standarizedTransaction.network != 'app'
-                && standarizedTransaction.network != 'internal') {
+                && standarizedTransaction.network != 'internal'
+                    && standarizedTransaction.type != 'deposit'
+                        && standarizedTransaction.type != 'withdraw') {
+                            
                     if(!standarizedTransaction.user_network)
                         standarizedTransaction.user_network = standarizedTransaction.network;
 
