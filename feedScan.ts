@@ -5,7 +5,7 @@ import * as mqtt from './mqtt-broker';
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
-    useProxy = false;
+    useProxy = true;
 
     tipbotModel: mongoose.Model<any>;
     tipbotModelStandarized: mongoose.Model<any>;
@@ -191,15 +191,16 @@ export class FeedScan {
         //set user_network and to_network when transaction happened on same network
         if(standarizedTransaction.network != 'btn'
             && standarizedTransaction.network != 'app'
-                && standarizedTransaction.network != 'internal'
-                    && standarizedTransaction.type != 'deposit'
-                        && standarizedTransaction.type != 'withdraw') {
+                && standarizedTransaction.network != 'internal') {
 
                     if(!standarizedTransaction.user_network)
                         standarizedTransaction.user_network = standarizedTransaction.network;
 
-                    if(!standarizedTransaction.to_network)
-                        standarizedTransaction.to_network = standarizedTransaction.network;
+                    if(standarizedTransaction.type != 'deposit' && standarizedTransaction.type != 'withdraw') {
+                        //set also to_network when not deposit or withdraw
+                        if(!standarizedTransaction.to_network)
+                            standarizedTransaction.to_network = standarizedTransaction.network;
+                    }
                 }
 
         return standarizedTransaction;
