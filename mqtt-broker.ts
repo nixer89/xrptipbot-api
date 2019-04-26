@@ -1,6 +1,6 @@
 import * as mosca from 'mosca';
 
-let server;
+let server:mosca.Server;
 
 let pubsubsettings = {
     //using ascoltatore
@@ -25,7 +25,9 @@ export function init() {
 }
 
 export function publishMesssage(topic: string, payload: any) {
-    server.publish({topic: topic, payload: payload, qos:0, retain: false})
+    server.publish({topic: topic, payload: payload, qos:0, retain: false}, (obj: any, packet: mosca.Packet) => {
+        //nothing to do
+    });
 }
 
 //no one except the server is allowed to publish

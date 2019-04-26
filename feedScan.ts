@@ -112,27 +112,35 @@ export class FeedScan {
 
     publishTransactionOnMQTT(transaction: any) {
         //publish a message with the user sending the tip and one message receiving the tip
-        if(transaction.type==='deposit' || transaction.type==='withdraw') {
-            console.log("publishing: " + transaction.type+'/'+transaction.network+'/'+transaction.user)
-            mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/'+transaction.user, JSON.stringify(transaction));
-            mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/*', JSON.stringify(transaction));
-            mqtt.publishMesssage(transaction.type+'/*', JSON.stringify(transaction));
-        } else {
-            if(transaction.user) {
-                let user_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.user_network : transaction.network;
-                console.log("publishing: " + transaction.type+'/sent/'+user_network+'/'+transaction.user)
-                mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/'+transaction.user, JSON.stringify(transaction));
-                mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/*', JSON.stringify(transaction));
-                mqtt.publishMesssage(transaction.type+'/sent/*', JSON.stringify(transaction));
-            }
+        try {
+            let user = transaction.user ? transaction.user.toLowerCase() : "undefined";
+            let to_user = transaction.to ? transaction.to.toLowerCase() : "undefined";
 
-            if(transaction.to) {
-                let to_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.to_network : transaction.network;
-                console.log("publishing: " + transaction.type+'/received/'+to_network+'/'+transaction.to)
-                mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/'+transaction.to, JSON.stringify(transaction));
-                mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/*', JSON.stringify(transaction));
-                mqtt.publishMesssage(transaction.type+'/received/*', JSON.stringify(transaction));
+            if(transaction.type==='deposit' || transaction.type==='withdraw') {
+                console.log("publishing: " + transaction.type+'/'+transaction.network+'/'+user);
+                mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/'+user, JSON.stringify(transaction));
+                mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/*', JSON.stringify(transaction));
+                mqtt.publishMesssage(transaction.type+'/*', JSON.stringify(transaction));
+            } else {
+                if(transaction.user) {
+                    let user_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.user_network : transaction.network;
+                    console.log("publishing: " + transaction.type+'/sent/'+user_network+'/'+user);
+                    mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/'+user, JSON.stringify(transaction));
+                    mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/*', JSON.stringify(transaction));
+                    mqtt.publishMesssage(transaction.type+'/sent/*', JSON.stringify(transaction));
+                }
+
+                if(transaction.to) {
+                    let to_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.to_network : transaction.network;
+                    console.log("publishing: " + transaction.type+'/received/'+to_network+'/'+to_user);
+                    mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/'+to_user, JSON.stringify(transaction));
+                    mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/*', JSON.stringify(transaction));
+                    mqtt.publishMesssage(transaction.type+'/received/*', JSON.stringify(transaction));
+                }
             }
+        } catch(err) {
+            console.log("error publishing transaction on mqtt.")
+            console.log(JSON.stringify(err));
         }
     }
 
