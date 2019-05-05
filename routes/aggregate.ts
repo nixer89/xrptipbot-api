@@ -1,5 +1,6 @@
 import { Model } from 'mongoose';
 import * as db from '../db';
+import * as util from '../util';
 
 var tipbotModel: Model<any>;
 
@@ -69,13 +70,6 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
     
     if(tipbotModel) {
         try {
-            let filterWithOperatorAnd:any[] = [];
-
-            if(filter.user)
-                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
-
-            if(filter.to)
-                filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
             
             let limit:number= 1000000;
             if(filter.limit) {
@@ -86,40 +80,7 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
                 delete filter.limit;
             }
 
-            if(filter.xrp) {
-                if(isNaN(filter.xrp)) {
-                    if(filter.xrp.includes('>='))
-                        filterWithOperatorAnd.push({xrp: {$gte: filter.xrp.substring(2)}});
-                    else if(filter.xrp.includes('<='))
-                        filterWithOperatorAnd.push({xrp: {$lte: filter.xrp.substring(2)}});
-                    else if(filter.xrp.includes('>'))
-                        filterWithOperatorAnd.push({xrp: {$gt: filter.xrp.substring(1)}});
-                    else if(filter.xrp.includes('<'))
-                        filterWithOperatorAnd.push({xrp: {$lt: filter.xrp.substring(1)}});
-                    delete filter.xrp;
-                }
-            }
-
-            let from_date:Date;
-            if(filter.from_date) {
-                from_date = new Date(filter.from_date)
-                filterWithOperatorAnd.push({momentAsDate: {$gte: from_date}});
-                delete filter.from_date;
-            }
-
-            let to_date:Date;
-            if(filter.to_date) {
-                to_date = new Date(filter.to_date)
-                filterWithOperatorAnd.push({momentAsDate: {$lte: to_date}});
-                delete filter.to_date;
-            }
-
-            let finalFilter:any;
-            if(filterWithOperatorAnd.length>0) {
-                filterWithOperatorAnd.push(filter)
-                finalFilter = {$and: filterWithOperatorAnd}
-            } else
-                finalFilter = filter;
+            let finalFilter = util.generateDbFilter(filter);
 
             //console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter) + " and group options: " + JSON.stringify(groupOptions));
             let mongoResult = await tipbotModel.aggregate([
