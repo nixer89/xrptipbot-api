@@ -23,10 +23,27 @@ var tipBotSchema:mongoose.Schema = new Schema({
     momentAsDate: Date
 });
 
+var tipBotSchemaILP:mongoose.Schema = new Schema({
+    id: {type: String, required: true},
+    moment: String,
+    type: String,
+    network: String,
+    user: String,
+    user_network: String,
+    user_id: String,
+    amount: Number,
+    momentAsDate: Date
+});
+
 tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
 tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
 tipBotSchema = tipBotSchema.index({user: 1, to:1 ,id:-1,}, {unique: true});
 tipBotSchema = tipBotSchema.index({user_id: 1, to_id:1 ,id:-1,}, {unique: true});
+
+tipBotSchemaILP = tipBotSchemaILP.index({momentAsDate: -1}, {unique: false});
+tipBotSchemaILP = tipBotSchemaILP.index({id: -1}, {unique: true});
+tipBotSchemaILP = tipBotSchemaILP.index({user: 1, id:-1,}, {unique: true});
+tipBotSchemaILP = tipBotSchemaILP.index({user_id: 1, id:-1,}, {unique: true});
 
 export function initTipDB(): Promise<boolean> {
     return initDB(tipCollectionName);
@@ -56,24 +73,24 @@ async function initDB(collectionName: string): Promise<boolean> {
 }
 
 export function getNewDbModelTips(): Promise<mongoose.Model<any>> {
-    return getNewDbModel(tipCollectionName);
+    return getNewDbModel(tipCollectionName, tipBotSchema);
 }
 
 export function getNewDbModelILP(): Promise<mongoose.Model<any>> {
-    return getNewDbModel(ilpCollectionName);
+    return getNewDbModel(ilpCollectionName, tipBotSchemaILP);
 }
 
 export function getNewDbModelTipsStandarized(): Promise<mongoose.Model<any>> {
-    return getNewDbModel(tipCollectionNameStandarized);
+    return getNewDbModel(tipCollectionNameStandarized, tipBotSchema);
 }
 
-async function getNewDbModel(collectionName: string): Promise<mongoose.Model<any>> {
+async function getNewDbModel(collectionName: string, schema: mongoose.Schema): Promise<mongoose.Model<any>> {
     let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection.on('open', ()=>{console.log("Connection to MongoDB established")});
     connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
 
     if(connection)
-        return connection.model('xrpTipBotApiModel', tipBotSchema, collectionName);
+        return connection.model('xrpTipBotApiModel', schema, collectionName);
     else
         return null;
 }
