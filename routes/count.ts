@@ -29,8 +29,8 @@ export async function registerRoutes(fastify, opts, next) {
         //console.log("query params for /count/mostReceivedFrom: " + JSON.stringify(request.query));
         request.query.user_id = {"$ne":null}
         try {
-            let countResult = await Count(JSON.stringify(request.query), { _id: '$user_id', count: {"$sum": 1}},{count:-1});
-            console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
+            let countResult = await Count(JSON.stringify(request.query), { _id: { user: {$toLower: "$user"}, network: {$toLower: "$user_network"}, id: "$user_id"}, userName: {$first: '$user'}, count: {"$sum": 1}},{count:-1});
+            //console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
 
             if(countResult) {
                 return { result: countResult}
@@ -47,7 +47,7 @@ export async function registerRoutes(fastify, opts, next) {
         //console.log("query params for /count/mostSentTo: " + JSON.stringify(request.query));
         try {
             request.query.to_id = {"$ne":null}
-            let countResult = await Count(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
+            let countResult = await Count(JSON.stringify(request.query), { _id: { user: {$toLower: "$to"}, network: {$toLower: "$to_network"}, id: "$to_id"}, userName: {$first: '$to'}, count: {"$sum": 1}},{count:-1});
             //console.log("/count/mostSentTo Result: " + JSON.stringify(countResult));
 
             if(countResult) {
@@ -76,6 +76,12 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
 
             if(filter.to)
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+
+            if(filter.excludeUser) {
+                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
+                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
+                delete filter.excludeUser;
+            }
 
             let limit:number= 1000000;
             if(filter.limit) {

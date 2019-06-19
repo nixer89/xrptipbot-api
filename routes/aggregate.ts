@@ -29,7 +29,7 @@ export async function registerRoutes(fastify, opts, next) {
         //console.log("query params for /aggregate/mostXRPReceived: " + JSON.stringify(request.query));
         try {
             request.query.user_id = {"$ne":null}
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$user_id",xrp: {"$sum": "$xrp"}},{xrp:-1});
+            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: { user: {$toLower: "$user"}, network: {$toLower: "$user_network"}, id: "$user_id" }, userName: {$first: '$user'}, xrp: {"$sum": "$xrp"}},{xrp:-1});
             //console.log("/aggregate/xrp/mostReceivedFrom Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
@@ -47,7 +47,7 @@ export async function registerRoutes(fastify, opts, next) {
         //console.log("query params for /aggregate/mostXRPSent: " + JSON.stringify(request.query));
         try {
             request.query.to_id = {"$ne":null}
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: "$to_id", xrp: {"$sum": "$xrp"}},{xrp:-1});
+            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: { user: {$toLower: "$to"}, network: {$toLower: "$to_network"}, id: "$to_id" }, userName: {$first: '$to'}, xrp: {"$sum": "$xrp"}},{xrp:-1});
             //console.log("/aggregate/xrp/mostSentTo Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
@@ -66,6 +66,7 @@ export async function registerRoutes(fastify, opts, next) {
 
 async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {
     filter = JSON.parse(filter);
+    //console.log("received filter: " + JSON.stringify(filter));
     
     if(tipbotModel) {
         try {
@@ -76,6 +77,12 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
 
             if(filter.to)
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+
+            if(filter.excludeUser) {
+                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
+                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
+                delete filter.excludeUser;
+            }
             
             let limit:number= 1000000;
             if(filter.limit) {

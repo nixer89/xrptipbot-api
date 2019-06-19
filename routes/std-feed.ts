@@ -38,6 +38,12 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
             if(filter.to)
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
 
+            if(filter.excludeUser) {
+                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
+                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
+                delete filter.excludeUser;
+            }
+
             let limit:number;
             if(filter.limit) {
                 limit = parseInt(filter.limit);
