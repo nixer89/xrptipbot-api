@@ -16,18 +16,6 @@ export class FeedScan {
         this.tipbotModel = tipbotModel;
         this.tipbotModelStandarized = tipbotModelStandarized;
         this.feedURL = feedURL;
-
-        if(this.tipbotModel) {
-            this.tipbotModel.collection.dropIndexes();
-            this.tipbotModel.collection.createIndex({momentAsDate: -1}, {unique: false});
-            this.tipbotModel.collection.createIndex({xrp: 1}, {unique: false});
-        }
-
-        if(this.tipbotModelStandarized) {
-            this.tipbotModelStandarized.collection.dropIndexes();
-            this.tipbotModelStandarized.collection.createIndex({momentAsDate: -1}, {unique: false});
-            this.tipbotModelStandarized.collection.createIndex({xrp: 1}, {unique: false});
-        }
     }
 
     async initFeed(isNewCollection:boolean, updateStandarized?: boolean, useMQTT?: boolean): Promise<void> {
