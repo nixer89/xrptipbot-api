@@ -128,10 +128,12 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
                 finalFilter = filter;
 
             //console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
+            //console.time("dbTimeCount"+JSON.stringify(finalFilter));
             let mongoResult = await tipbotModel.aggregate([
                 { $match: finalFilter },
                 { $group: groupOptions }
             ]).sort(sortOptions).limit(limit).exec();
+            //console.timeEnd("dbTimeCount"+JSON.stringify(finalFilter));
 
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 

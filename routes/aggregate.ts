@@ -129,10 +129,12 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
                 finalFilter = filter;
 
             //console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter) + " and group options: " + JSON.stringify(groupOptions));
+            //console.time("dbTimeAggregate"+JSON.stringify(finalFilter));
             let mongoResult = await tipbotModel.aggregate([
                 { $match: finalFilter },
                 { $group: groupOptions }
             ]).sort(sortOptions).limit(limit).exec();
+            //console.timeEnd("dbTimeAggregate"+JSON.stringify(finalFilter));
 
             //console.log("aggregate db result: " + JSON.stringify(mongoResult));
 

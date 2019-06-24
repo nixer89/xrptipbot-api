@@ -95,7 +95,9 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
                 finalFilter = filter;
 
             //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
+            //console.time("dbTimeStd"+JSON.stringify(finalFilter));
             let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
+            //console.timeEnd("dbTimeStd"+JSON.stringify(finalFilter));
 
             if(mongoResult) return mongoResult
             else return null;

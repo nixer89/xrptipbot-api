@@ -36,14 +36,11 @@ var tipBotSchemaILP:mongoose.Schema = new Schema({
 });
 
 tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
-tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
-tipBotSchema = tipBotSchema.index({user: 1, to:1 ,id:-1,}, {unique: true});
-tipBotSchema = tipBotSchema.index({user_id: 1, to_id:1 ,id:-1,}, {unique: true});
+tipBotSchema = tipBotSchema.index({xrp: 1}, {unique: false});
 
 tipBotSchemaILP = tipBotSchemaILP.index({momentAsDate: -1}, {unique: false});
-tipBotSchemaILP = tipBotSchemaILP.index({id: -1}, {unique: true});
-tipBotSchemaILP = tipBotSchemaILP.index({user: 1, id:-1,}, {unique: true});
-tipBotSchemaILP = tipBotSchemaILP.index({user_id: 1, id:-1,}, {unique: true});
+tipBotSchemaILP = tipBotSchemaILP.index({xrp: 1}, {unique: false});
+
 
 export function initTipDB(): Promise<boolean> {
     return initDB(tipCollectionName);
