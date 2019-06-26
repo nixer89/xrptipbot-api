@@ -18,7 +18,7 @@ fastify.register(require('fastify-cors'), {
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin']
 });
 
-console.log("declaring routes")
+console.log("declaring routes");
 fastify.register(origFeedRoute.registerRoutes);
 fastify.register(ilpFeedRoute.registerRoutes);
 fastify.register(stdFeedRoute.registerRoutes);
@@ -37,7 +37,7 @@ fastify.register(require('fastify-swagger'), {
   },
   exposeRoute: true,
   routePrefix: '/docs'
-})
+});
 
 
 // Run the server!
@@ -65,19 +65,19 @@ const start = async () => {
       await distinctRoute.init();
 
       await fastify.listen(4000,'0.0.0.0');
-      console.log(`server listening on ${fastify.server.address().port}`)
+      console.log(`server listening on ${fastify.server.address().port}`);
       console.log("http://localhost:4000/");
 
       fastify.ready(err => {
         if (err) throw err
-        fastify.swagger()
-      })
+        fastify.swagger();
+      });
 
     } catch (err) {
-      fastify.log.error(err)
-      process.exit(1)
+      fastify.log.error(err);
+      process.exit(1);
     }
 }
 
-console.log("running server")
+console.log("running server");
 start();
