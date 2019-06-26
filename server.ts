@@ -12,7 +12,11 @@ let feedURL = 'https://www.xrptipbot.com/json/feed';
 let ilpFeedURL = 'https://www.xrptipbot.com/json/ilp-feed';
 
 console.log("adding cors");
-fastify.register(require('fastify-cors'), {})
+fastify.register(require('fastify-cors'), {
+  origin: true,
+  methods: 'GET',
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin']
+});
 
 console.log("declaring routes")
 fastify.register(origFeedRoute.registerRoutes);
