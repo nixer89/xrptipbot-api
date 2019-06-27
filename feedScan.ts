@@ -5,7 +5,7 @@ import * as mqtt from './mqtt-broker';
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
-    useProxy = false;
+    useProxy = true;
 
     tipbotModel: mongoose.Model<any>;
     tipbotModelStandarized: mongoose.Model<any>;

@@ -42,6 +42,7 @@ fastify.register(require('fastify-swagger'), {
 
 // Run the server!
 const start = async () => {
+    console.log("starting server");
     try {
       //init db
       let isNewCollectionTips = await db.initTipDB();

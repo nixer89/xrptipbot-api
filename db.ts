@@ -55,6 +55,7 @@ export function initTipDBStandarized(): Promise<boolean> {
 }
 
 async function initDB(collectionName: string): Promise<boolean> {
+    console.log("connecting to mongo db with collection: " + collectionName);
     await mongoose.connect('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection = mongoose.connection;
 
@@ -65,6 +66,8 @@ async function initDB(collectionName: string): Promise<boolean> {
 
     let collections:CommandCursor = await mongoose.connection.db.listCollections({name: collectionName});
     newCollection = !(await collections.hasNext());
+    
+    await mongoose.disconnect();
 
     return newCollection;
 }
@@ -82,6 +85,7 @@ export function getNewDbModelTipsStandarized(): Promise<mongoose.Model<any>> {
 }
 
 async function getNewDbModel(collectionName: string, schema: mongoose.Schema): Promise<mongoose.Model<any>> {
+    console.log("connecting to mongo db with collection: " + collectionName +" and an schema");
     let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection.on('open', ()=>{console.log("Connection to MongoDB established")});
     connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
