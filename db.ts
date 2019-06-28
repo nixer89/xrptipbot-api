@@ -41,7 +41,6 @@ var tipBotSchemaILP:mongoose.Schema = new Schema({
 tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
 tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
 tipBotSchema = tipBotSchema.index({xrp: 1}, {unique: false});
-tipBotSchema = tipBotSchema.index({id: 1}, {unique: true});
 
 tipBotSchemaILP = tipBotSchemaILP.index({id: -1}, {unique: true});
 tipBotSchemaILP = tipBotSchemaILP.index({momentAsDate: -1}, {unique: false});
