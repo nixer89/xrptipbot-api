@@ -2,6 +2,9 @@ import * as fetch from 'node-fetch';
 import * as mongoose from 'mongoose'
 import * as HttpsProxyAgent from 'https-proxy-agent';
 import * as mqtt from './mqtt-broker';
+import consoleStamp = require("console-stamp");
+
+consoleStamp(console, { pattern: 'yyyy-mm-dd HH:MM:ss' });
 
 export class FeedScan {
     proxy = new HttpsProxyAgent("http://proxy:81");
@@ -20,23 +23,32 @@ export class FeedScan {
 
     async initFeed(isNewCollection:boolean, updateStandarized?: boolean, useMQTT?: boolean): Promise<void> {
 
-        console.log("is new collection? " + isNewCollection);
+        console.log("[FEEDSCAN]: is new collection? " + isNewCollection);
         if(useMQTT)
             mqtt.init();
         
         //initialize feed on startup -> create new collection or add missing transactions
         await this.scanFeed(0, isNewCollection ? 1000 : 200, true, isNewCollection, false, updateStandarized, !isNewCollection && useMQTT);
     
-        console.log("feed initialized");
+        console.log("[FEEDSCAN]: feed initialized");
 
-        //if not new collection, scan whole feed 2 min after startup to get back in sync completely
+        //if not new collection, scan whole feed 5 min after startup to get back in sync completely
         if(!isNewCollection)
-            setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 120000);
+            setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 300000);
     
-        setInterval(() => this.scanFeed(0, 50, true, false, false, updateStandarized, useMQTT), 30000);
-
         //scan whole feed every 12h to get in sync in case some transactions were missed!
         setInterval(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 43200000);
+
+        //start scanning feed
+        this.scanFeedHandler(updateStandarized, useMQTT);
+    }
+
+    async scanFeedHandler(updateStandarized: boolean, useMQTT: boolean) {
+        //on first call, start scanning feed.
+        await this.scanFeed(0, 50, true, false, false, updateStandarized, useMQTT);
+
+        //if scanning feed done, set timer to scan feed in 1 minute again!
+        setTimeout(() => this.scanFeedHandler(updateStandarized, useMQTT), 60000);
     }
 
     async scanFeed(skip: number, limit: number, continueRequests: boolean, newCollection: boolean, continueUntilEnd?: boolean, updateStandarized?: boolean, useMQTT?: boolean, oneAndOnlyRepeat?: boolean): Promise<void> {
@@ -45,7 +57,7 @@ export class FeedScan {
             //ok we need to continue but set it to false as default
             continueRequests = false;
             try {
-                console.log("scanning feed with: " + this.feedURL+'?skip='+skip+'&limit='+limit);
+                console.log("[FEEDSCAN]: scanning feed with: " + this.feedURL+'?skip='+skip+'&limit='+limit);
                 let tipbotFeed = await fetch.default(this.feedURL+'?skip='+skip+'&limit='+limit, {agent: this.useProxy ? this.proxy : null});
     
                 if(tipbotFeed.ok) {
@@ -80,7 +92,7 @@ export class FeedScan {
                                     continueRequests=true;
                             }
                         } catch(err) {
-                            console.log("updateOne error: " + JSON.stringify(err));
+                            console.log("[FEEDSCAN]: updateOne error: " + JSON.stringify(err));
                             //Something went wrong on init. Stop initialization
                             continueRequests = false;
                         }
@@ -94,8 +106,8 @@ export class FeedScan {
                 }
             } catch (err) {
                 //nothing to do here.
-                console.log("an error occured while calling api or inserting data into db")
-                console.log(JSON.stringify(err));
+                console.log("[FEEDSCAN]: an error occured while calling api or inserting data into db")
+                console.log("[FEEDSCAN]: " + JSON.stringify(err));
                 //repeat only one time if we have an json error -> may not occure a second time!
                 if(!oneAndOnlyRepeat && err && err.message && err.message.startsWith("invalid json response body")) {
                     oneAndOnlyRepeat = true;
@@ -117,14 +129,14 @@ export class FeedScan {
             let to_user = transaction.to ? transaction.to.toLowerCase() : "undefined";
 
             if(transaction.type==='deposit' || transaction.type==='withdraw') {
-                console.log("publishing: " + transaction.type+'/'+transaction.network+'/'+user);
+                console.log("[FEEDSCAN]: publishing: " + transaction.type+'/'+transaction.network+'/'+user);
                 mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/'+user, JSON.stringify(transaction));
                 mqtt.publishMesssage(transaction.type+'/'+transaction.network+'/*', JSON.stringify(transaction));
                 mqtt.publishMesssage(transaction.type+'/*', JSON.stringify(transaction));
             } else {
                 if(transaction.user) {
                     let user_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.user_network : transaction.network;
-                    console.log("publishing: " + transaction.type+'/sent/'+user_network+'/'+user);
+                    console.log("[FEEDSCAN]: publishing: " + transaction.type+'/sent/'+user_network+'/'+user);
                     mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/'+user, JSON.stringify(transaction));
                     mqtt.publishMesssage(transaction.type+'/sent/'+user_network+'/*', JSON.stringify(transaction));
                     mqtt.publishMesssage(transaction.type+'/sent/*', JSON.stringify(transaction));
@@ -132,15 +144,15 @@ export class FeedScan {
 
                 if(transaction.to) {
                     let to_network = (transaction.network === 'app' || transaction.network === 'btn') ? transaction.to_network : transaction.network;
-                    console.log("publishing: " + transaction.type+'/received/'+to_network+'/'+to_user);
+                    console.log("[FEEDSCAN]: publishing: " + transaction.type+'/received/'+to_network+'/'+to_user);
                     mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/'+to_user, JSON.stringify(transaction));
                     mqtt.publishMesssage(transaction.type+'/received/'+to_network+'/*', JSON.stringify(transaction));
                     mqtt.publishMesssage(transaction.type+'/received/*', JSON.stringify(transaction));
                 }
             }
         } catch(err) {
-            console.log("error publishing transaction on mqtt.")
-            console.log(JSON.stringify(err));
+            console.log("[FEEDSCAN]: error publishing transaction on mqtt.")
+            console.log("[FEEDSCAN]: " + JSON.stringify(err));
         }
     }
 

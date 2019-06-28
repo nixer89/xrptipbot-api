@@ -1,5 +1,8 @@
 import * as mongoose from 'mongoose'
 import { CommandCursor } from 'mongodb';
+import consoleStamp = require("console-stamp");
+
+consoleStamp(console, { pattern: 'yyyy-mm-dd HH:MM:ss' });
 
 let connection: mongoose.Connection;
 let tipCollectionName:string = "FeedCollection";
@@ -35,9 +38,12 @@ var tipBotSchemaILP:mongoose.Schema = new Schema({
     momentAsDate: Date
 });
 
+tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
 tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
 tipBotSchema = tipBotSchema.index({xrp: 1}, {unique: false});
+tipBotSchema = tipBotSchema.index({id: 1}, {unique: true});
 
+tipBotSchemaILP = tipBotSchemaILP.index({id: -1}, {unique: true});
 tipBotSchemaILP = tipBotSchemaILP.index({momentAsDate: -1}, {unique: false});
 tipBotSchemaILP = tipBotSchemaILP.index({xrp: 1}, {unique: false});
 
@@ -55,12 +61,12 @@ export function initTipDBStandarized(): Promise<boolean> {
 }
 
 async function initDB(collectionName: string): Promise<boolean> {
-    console.log("connecting to mongo db with collection: " + collectionName);
+    console.log("[DB]: connecting to mongo db with collection: " + collectionName);
     await mongoose.connect('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection = mongoose.connection;
 
-    connection.on('open', ()=>{console.log("Connection to MongoDB established")});
-    connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
+    connection.on('open', ()=>{console.log("[DB]: Connection to MongoDB established")});
+    connection.on('error', ()=>{console.log("[DB]: Connection to MongoDB could NOT be established")});
 
     let newCollection = true;    
 
@@ -85,10 +91,10 @@ export function getNewDbModelTipsStandarized(): Promise<mongoose.Model<any>> {
 }
 
 async function getNewDbModel(collectionName: string, schema: mongoose.Schema): Promise<mongoose.Model<any>> {
-    console.log("connecting to mongo db with collection: " + collectionName +" and an schema");
+    console.log("[DB]: connecting to mongo db with collection: " + collectionName +" and an schema");
     let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
-    connection.on('open', ()=>{console.log("Connection to MongoDB established")});
-    connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
+    connection.on('open', ()=>{console.log("[DB]: Connection to MongoDB established")});
+    connection.on('error', ()=>{console.log("[DB]: Connection to MongoDB could NOT be established")});
 
     if(connection)
         return connection.model('xrpTipBotApiModel', schema, collectionName);

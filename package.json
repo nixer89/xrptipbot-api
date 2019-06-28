@@ -1,6 +1,6 @@
 {
   "name": "xrptipbot-api",
-  "version": "1.6.5",
+  "version": "1.7.0",
   "description": "high performance API of the xrptipbot",
   "main": "server.ts",
   "scripts": {
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/nixer89/xrptipbot-api#readme",
   "dependencies": {
+    "console-stamp": "^0.2.9",
     "fastify": "^1.14.4",
     "fastify-cors": "^1.0.1",
     "fastify-swagger": "^1.2.0",
