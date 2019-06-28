@@ -34,10 +34,10 @@ export class FeedScan {
 
         //if not new collection, scan whole feed 5 min after startup to get back in sync completely
         if(!isNewCollection)
-            setTimeout(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 300000);
+            setTimeout(() => this.scanFeed(0, 9000, true, false, true, updateStandarized), 300000);
     
         //scan whole feed every 12h to get in sync in case some transactions were missed!
-        setInterval(() => this.scanFeed(0, 10000, true, false, true, updateStandarized), 43200000);
+        setInterval(() => this.scanFeed(0, 9000, true, false, true, updateStandarized), 43200000);
 
         //start scanning feed
         this.scanFeedHandler(updateStandarized, useMQTT);
@@ -65,6 +65,7 @@ export class FeedScan {
     
                     //we have entries -> store them in db!
                     if(feedArray && feedArray.feed && feedArray.feed.length > 0) {
+                        console.log("[FEEDSCAN]: received " + feedArray.feed.length + " entries.");
                         if(newCollection)
                             //we have an array so run at least one more time if we are in initialization phase
                             continueRequests = true;
@@ -97,10 +98,17 @@ export class FeedScan {
                             continueRequests = false;
                         }
                     } else {
+                        if(!feedArray)
+                            console.log("[FEEDSCAN]: feedArray not available");
+                        else if(!feedArray.feed)
+                            console.log("[FEEDSCAN]: feedArray.feed not available");
+                        else if(feedArray.feed.length <= 0)
+                            console.log("[FEEDSCAN]: feedArray.feed.length <= 0");
                         //nothing to do anymore -> cancel execution
                         continueRequests = continueUntilEnd = false;
                     }
                 } else {
+                    console.log("[FEEDSCAN]: tipbotFeed.ok is not ok!")
                     //something is wrong -> cancel request
                     continueRequests = continueUntilEnd = false;
                 }
