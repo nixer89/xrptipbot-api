@@ -1,10 +1,8 @@
 import * as mongoose from 'mongoose'
-import { CommandCursor } from 'mongodb';
 import consoleStamp = require("console-stamp");
 
 consoleStamp(console, { pattern: 'yyyy-mm-dd HH:MM:ss' });
 
-let connection: mongoose.Connection;
 let tipCollectionName:string = "FeedCollection";
 let ilpCollectionName:string = "ILPFeedCollection";
 let tipCollectionNameStandarized:string = "FeedCollectionStandarized";
@@ -45,37 +43,6 @@ tipBotSchema = tipBotSchema.index({xrp: 1}, {unique: false});
 tipBotSchemaILP = tipBotSchemaILP.index({id: -1}, {unique: true});
 tipBotSchemaILP = tipBotSchemaILP.index({momentAsDate: -1}, {unique: false});
 tipBotSchemaILP = tipBotSchemaILP.index({xrp: 1}, {unique: false});
-
-
-export function initTipDB(): Promise<boolean> {
-    return initDB(tipCollectionName);
-}
-
-export function initILPDB(): Promise<boolean> {
-    return initDB(ilpCollectionName);
-}
-
-export function initTipDBStandarized(): Promise<boolean> {
-    return initDB(tipCollectionNameStandarized);
-}
-
-async function initDB(collectionName: string): Promise<boolean> {
-    console.log("[DB]: connecting to mongo db with collection: " + collectionName);
-    await mongoose.connect('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
-    connection = mongoose.connection;
-
-    connection.on('open', ()=>{console.log("[DB]: Connection to MongoDB established")});
-    connection.on('error', ()=>{console.log("[DB]: Connection to MongoDB could NOT be established")});
-
-    let newCollection = true;    
-
-    let collections:CommandCursor = await mongoose.connection.db.listCollections({name: collectionName});
-    newCollection = !(await collections.hasNext());
-    
-    await mongoose.disconnect();
-
-    return newCollection;
-}
 
 export function getNewDbModelTips(): Promise<mongoose.Model<any>> {
     return getNewDbModel(tipCollectionName, tipBotSchema);
