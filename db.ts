@@ -7,6 +7,7 @@ let tipCollectionName:string = "FeedCollection";
 let ilpCollectionName:string = "ILPFeedCollection";
 let tipCollectionNameStandarized:string = "FeedCollectionStandarized";
 var Schema = mongoose.Schema;
+let dbIp = process.env.DB_IP || "127.0.0.1"
 
 var tipBotSchema:mongoose.Schema = new Schema({
     id: {type: String, required: true},
@@ -58,7 +59,7 @@ export function getNewDbModelTipsStandarized(): Promise<mongoose.Model<any>> {
 
 async function getNewDbModel(collectionName: string, schema: mongoose.Schema): Promise<mongoose.Model<any>> {
     console.log("[DB]: connecting to mongo db with collection: " + collectionName +" and an schema");
-    let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
+    let connection:mongoose.Connection = await mongoose.createConnection('mongodb://'+dbIp+':27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
     connection.on('open', ()=>{console.log("[DB]: Connection to MongoDB established")});
     connection.on('error', ()=>{console.log("[DB]: Connection to MongoDB could NOT be established")});
 
