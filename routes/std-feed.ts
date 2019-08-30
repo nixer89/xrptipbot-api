@@ -110,13 +110,13 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
                 finalFilter = normalFilter;
 
             //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
-            //console.time("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
+            console.time("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
             let mongoResult:any[];
             if(limit)
                 mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).limit(limit).toArray();
             else
                 mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).toArray();
-            //console.timeEnd("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
+            console.timeEnd("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
             //console.log("mongoResult: " + JSON.stringify(mongoResult));
 
 
