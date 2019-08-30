@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Collection } from 'mongodb';
 import * as db from '../db';
 
-var tipbotModel: Model<any>;
+var tipbotModel: Collection<any>;
 
 export async function init() {
     tipbotModel = await db.getNewDbModelTipsStandarized();
@@ -87,9 +87,12 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
                 delete filter.to_date;
             }
 
-            let result_fields:string;
+            let projection:any;
             if(filter.result_fields) {
-                result_fields = filter.result_fields.trim().replace(/,/g,' ');
+                projection = {};
+                let fields:any[] = filter.result_fields.split(',');
+                fields.forEach(field => projection[field] = 1);
+                
                 delete filter.result_fields;
             }
 
@@ -107,9 +110,13 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
                 finalFilter = normalFilter;
 
             //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
-            //console.time("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(result_fields));
-            let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
-            //console.timeEnd("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(result_fields));
+            //console.time("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
+            let mongoResult:any[];
+            if(limit)
+                mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).limit(limit).toArray();
+            else
+                mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).toArray();
+            //console.timeEnd("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
             //console.log("mongoResult: " + JSON.stringify(mongoResult));
 
 

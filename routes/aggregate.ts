@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Collection } from 'mongodb';
 import * as db from '../db';
 
-var tipbotModel: Model<any>;
+var tipbotModel: Collection<any>;
 
 export async function init() {
     tipbotModel = await db.getNewDbModelTipsStandarized();
@@ -150,7 +150,11 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
 
             //console.log("Calling aggregate db with filter: " + JSON.stringify(finalFilter) + " and group options: " + JSON.stringify(groupOptions));
             //console.time("dbTimeAggregate: "+JSON.stringify(finalFilter)+" || GROUPOPTIONS: "+JSON.stringify(groupOptions)+" || SORTOPTIONS: "+JSON.stringify(sortOptions));
-            let mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).limit(limit).exec();
+            let mongoResult:any[];
+            if(limit)
+                mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).limit(limit).toArray();
+            else
+                mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).toArray();
             //console.timeEnd("dbTimeAggregate: "+JSON.stringify(finalFilter)+" || GROUPOPTIONS: "+JSON.stringify(groupOptions)+" || SORTOPTIONS: "+JSON.stringify(sortOptions));
 
             //console.log("aggregate db result: " + JSON.stringify(mongoResult));

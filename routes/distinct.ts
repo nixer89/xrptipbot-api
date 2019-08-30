@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Collection } from 'mongodb';
 import * as db from '../db';
 
-var tipbotModel: Model<any>;
+var tipbotModel: Collection<any>;
 
 export async function init() {
     tipbotModel = await db.getNewDbModelTipsStandarized();
@@ -99,7 +99,7 @@ async function Distinct(filter:any): Promise<any> {
 
             //console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
             //console.time("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField);
-            let mongoResult = await tipbotModel.distinct(distinctField,finalFilter).exec();
+            let mongoResult = await tipbotModel.distinct(distinctField,finalFilter);
             //console.timeEnd("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField)
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 
