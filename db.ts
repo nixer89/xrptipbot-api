@@ -40,6 +40,10 @@ var tipBotSchemaILP:mongoose.Schema = new Schema({
 tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
 tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
 tipBotSchema = tipBotSchema.index({xrp: 1}, {unique: false});
+tipBotSchema = tipBotSchema.index({user_id: 1}, {unique: false});
+tipBotSchema = tipBotSchema.index({to_id: 1}, {unique: false});
+tipBotSchema = tipBotSchema.index({type: 1, network: 1}, {unique: false});
+tipBotSchema = tipBotSchema.index({user: "text", to: "text"}, {unique: false});
 
 tipBotSchemaILP = tipBotSchemaILP.index({id: -1}, {unique: true});
 tipBotSchemaILP = tipBotSchemaILP.index({momentAsDate: -1}, {unique: false});

@@ -38,11 +38,17 @@ async function Distinct(filter:any): Promise<any> {
             let distinctField = filter.distinct;
             delete filter.distinct;
             
-            if(filter.user)
-                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            let textSearch;
 
-            if(filter.to)
+            if(filter.user) {
+                textSearch = filter.user;
+                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            }
+
+            if(filter.to) {
+                textSearch = filter.to;
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+            }
 
             if(filter.excludeUser) {
                 filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
@@ -78,16 +84,23 @@ async function Distinct(filter:any): Promise<any> {
                 delete filter.to_date;
             }
 
-            let finalFilter:any;
+            let normalFilter:any;
             if(filterWithOperatorAnd.length>0) {
                 filterWithOperatorAnd.push(filter)
-                finalFilter = {$and: filterWithOperatorAnd}
+                normalFilter = {$and: filterWithOperatorAnd}
             } else
-                finalFilter = filter;
+                normalFilter = filter;
+
+            let finalFilter;
+            if(textSearch) {
+                finalFilter = {$and:[{$text: {$search: textSearch}},normalFilter]}
+            } else
+                finalFilter = normalFilter;
 
             //console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
+            //console.time("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField);
             let mongoResult = await tipbotModel.distinct(distinctField,finalFilter).exec();
-
+            //console.timeEnd("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField)
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 
             return mongoResult;

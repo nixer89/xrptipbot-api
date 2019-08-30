@@ -1,6 +1,6 @@
 {
   "name": "xrptipbot-api",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "high performance API of the xrptipbot",
   "main": "server.ts",
   "scripts": {

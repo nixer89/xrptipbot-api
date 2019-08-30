@@ -32,11 +32,17 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
         try {
             let filterWithOperatorAnd:any[] = [];
 
-            if(filter.user)
-                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            let textSearch;
 
-            if(filter.to)
+            if(filter.user) {
+                textSearch = filter.user;
+                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            }
+
+            if(filter.to) {
+                textSearch = filter.to;
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+            }
 
             if(filter.excludeUser) {
                 filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
@@ -87,17 +93,25 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
                 delete filter.result_fields;
             }
 
-            let finalFilter:any;
+            let normalFilter:any;
             if(filterWithOperatorAnd.length>0) {
                 filterWithOperatorAnd.push(filter)
-                finalFilter = {$and: filterWithOperatorAnd}
+                normalFilter = {$and: filterWithOperatorAnd}
             } else
-                finalFilter = filter;
+                normalFilter = filter;
+
+            let finalFilter;
+            if(textSearch) {
+                finalFilter = {$and:[{$text: {$search: textSearch}},normalFilter]}
+            } else
+                finalFilter = normalFilter;
 
             //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
-            //console.time("dbTimeStd"+JSON.stringify(finalFilter));
+            //console.time("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(result_fields));
             let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
-            //console.timeEnd("dbTimeStd"+JSON.stringify(finalFilter));
+            //console.timeEnd("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(result_fields));
+            //console.log("mongoResult: " + JSON.stringify(mongoResult));
+
 
             if(mongoResult) return mongoResult
             else return null;
