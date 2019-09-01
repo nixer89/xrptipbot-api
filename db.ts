@@ -1,79 +1,45 @@
-import * as mongoose from 'mongoose'
-import { CommandCursor } from 'mongodb';
+import { MongoClient, Collection } from 'mongodb';
+import consoleStamp = require("console-stamp");
 
-let connection: mongoose.Connection;
+consoleStamp(console, { pattern: 'yyyy-mm-dd HH:MM:ss' });
+
 let tipCollectionName:string = "FeedCollection";
 let ilpCollectionName:string = "ILPFeedCollection";
 let tipCollectionNameStandarized:string = "FeedCollectionStandarized";
-var Schema = mongoose.Schema;
+let dbIp = process.env.DB_IP || "127.0.0.1"
 
-var tipBotSchema:mongoose.Schema = new Schema({
-    id: {type: String, required: true},
-    moment: String,
-    type: String,
-    xrp: Number,
-    network: String,
-    user: String,
-    to: String,
-    user_network: String,
-    to_network: String,
-    user_id: String,
-    to_id: String,
-    context: String,
-    momentAsDate: Date
-});
-
-tipBotSchema = tipBotSchema.index({momentAsDate: -1}, {unique: false});
-tipBotSchema = tipBotSchema.index({id: -1}, {unique: true});
-tipBotSchema = tipBotSchema.index({user: 1, to:1 ,id:-1,}, {unique: true});
-tipBotSchema = tipBotSchema.index({user_id: 1, to_id:1 ,id:-1,}, {unique: true});
-
-export function initTipDB(): Promise<boolean> {
-    return initDB(tipCollectionName);
+export async function getNewDbModelTips(): Promise<Collection<any>> {
+    return ensureIndexes(await getNewDbModel(tipCollectionName));
 }
 
-export function initILPDB(): Promise<boolean> {
-    return initDB(ilpCollectionName);
+export async function getNewDbModelILP(): Promise<Collection<any>> {
+    return ensureIndexes(await getNewDbModel(ilpCollectionName));
 }
 
-export function initTipDBStandarized(): Promise<boolean> {
-    return initDB(tipCollectionNameStandarized);
+export async function getNewDbModelTipsStandarized(): Promise<Collection<any>> {
+    return ensureIndexes( await getNewDbModel(tipCollectionNameStandarized));
 }
 
-async function initDB(collectionName: string): Promise<boolean> {
-    await mongoose.connect('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
-    connection = mongoose.connection;
-
-    connection.on('open', ()=>{console.log("Connection to MongoDB established")});
-    connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
-
-    let newCollection = true;    
-
-    let collections:CommandCursor = await mongoose.connection.db.listCollections({name: collectionName});
-    newCollection = !(await collections.hasNext());
-
-    return newCollection;
-}
-
-export function getNewDbModelTips(): Promise<mongoose.Model<any>> {
-    return getNewDbModel(tipCollectionName);
-}
-
-export function getNewDbModelILP(): Promise<mongoose.Model<any>> {
-    return getNewDbModel(ilpCollectionName);
-}
-
-export function getNewDbModelTipsStandarized(): Promise<mongoose.Model<any>> {
-    return getNewDbModel(tipCollectionNameStandarized);
-}
-
-async function getNewDbModel(collectionName: string): Promise<mongoose.Model<any>> {
-    let connection:mongoose.Connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/'+collectionName, { useCreateIndex: true, useNewUrlParser: true});
-    connection.on('open', ()=>{console.log("Connection to MongoDB established")});
-    connection.on('error', ()=>{console.log("Connection to MongoDB could NOT be established")});
+async function getNewDbModel(collectionName: string): Promise<Collection<any>> {
+    console.log("[DB]: connecting to mongo db with collection: " + collectionName +" and an schema");
+    let connection:MongoClient = await MongoClient.connect('mongodb://'+dbIp+':27017', { useNewUrlParser: true, useUnifiedTopology: true });
+    connection.on('open', ()=>{console.log("[DB]: Connection to MongoDB established")});
+    connection.on('error', ()=>{console.log("[DB]: Connection to MongoDB could NOT be established")});
 
     if(connection)
-        return connection.model('xrpTipBotApiModel', tipBotSchema, collectionName);
+        return connection.db(collectionName).collection(collectionName);
     else
         return null;
+}
+
+async function ensureIndexes(collection: Collection): Promise<Collection> {
+    await collection.createIndex({id: -1}, {unique: true});
+    await collection.createIndex({momentAsDate: -1});
+    await collection.createIndex({xrp: 1});
+    await collection.createIndex({user_id: 1});
+    await collection.createIndex({to_id: 1});
+    await collection.createIndex({type: 1, network: 1},);
+    await collection.createIndex({user: "text", to: "text"});
+
+    return collection;
 }

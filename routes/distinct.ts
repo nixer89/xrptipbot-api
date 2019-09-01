@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Collection } from 'mongodb';
 import * as db from '../db';
 
-var tipbotModel: Model<any>;
+var tipbotModel: Collection<any>;
 
 export async function init() {
     tipbotModel = await db.getNewDbModelTipsStandarized();
@@ -38,12 +38,24 @@ async function Distinct(filter:any): Promise<any> {
             let distinctField = filter.distinct;
             delete filter.distinct;
             
-            if(filter.user)
+            let textSearch;
+
+            if(filter.user) {
+                textSearch = filter.user;
                 filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            }
 
-            if(filter.to)
+            if(filter.to) {
+                textSearch = filter.to;
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+            }
 
+            if(filter.excludeUser) {
+                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
+                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
+                delete filter.excludeUser;
+            }
+            
             if(filter.xrp) {
                 if(isNaN(filter.xrp)) {
                     if(filter.xrp.includes('>='))
@@ -72,16 +84,23 @@ async function Distinct(filter:any): Promise<any> {
                 delete filter.to_date;
             }
 
-            let finalFilter:any;
+            let normalFilter:any;
             if(filterWithOperatorAnd.length>0) {
                 filterWithOperatorAnd.push(filter)
-                finalFilter = {$and: filterWithOperatorAnd}
+                normalFilter = {$and: filterWithOperatorAnd}
             } else
-                finalFilter = filter;
+                normalFilter = filter;
+
+            let finalFilter;
+            if(textSearch) {
+                finalFilter = {$and:[{$text: {$search: textSearch}},normalFilter]}
+            } else
+                finalFilter = normalFilter;
 
             //console.log("Calling distinct db with filter: " + JSON.stringify(finalFilter) + " and distinctField: " + distinctField);
-            let mongoResult = await tipbotModel.distinct(distinctField,finalFilter).exec();
-
+            //console.time("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField);
+            let mongoResult = await tipbotModel.distinct(distinctField,finalFilter);
+            //console.timeEnd("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField)
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 
             return mongoResult;

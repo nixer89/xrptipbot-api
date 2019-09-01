@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Collection } from 'mongodb';
 import * as db from '../db';
 
-var tipbotModel: Model<any>;
+var tipbotModel: Collection<any>;
 
 export async function init() {
     tipbotModel = await db.getNewDbModelTipsStandarized();
@@ -29,8 +29,8 @@ export async function registerRoutes(fastify, opts, next) {
         //console.log("query params for /count/mostReceivedFrom: " + JSON.stringify(request.query));
         request.query.user_id = {"$ne":null}
         try {
-            let countResult = await Count(JSON.stringify(request.query), { _id: '$user_id', count: {"$sum": 1}},{count:-1});
-            console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
+            let countResult = await Count(JSON.stringify(request.query), { _id: { user: {$toLower: "$user"}, network: {$toLower: "$user_network"}, id: "$user_id"}, userName: {$first: '$user'}, count: {"$sum": 1}},{count:-1});
+            //console.log("/count/mostReceivedFrom Result: " + JSON.stringify(countResult));
 
             if(countResult) {
                 return { result: countResult}
@@ -47,7 +47,7 @@ export async function registerRoutes(fastify, opts, next) {
         //console.log("query params for /count/mostSentTo: " + JSON.stringify(request.query));
         try {
             request.query.to_id = {"$ne":null}
-            let countResult = await Count(JSON.stringify(request.query), { _id: "$to_id", count: {"$sum": 1}},{count:-1});
+            let countResult = await Count(JSON.stringify(request.query), { _id: { user: {$toLower: "$to"}, network: {$toLower: "$to_network"}, id: "$to_id"}, userName: {$first: '$to'}, count: {"$sum": 1}},{count:-1});
             //console.log("/count/mostSentTo Result: " + JSON.stringify(countResult));
 
             if(countResult) {
@@ -71,11 +71,23 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
         try {
             let filterWithOperatorAnd:any[] = [];
             
-            if(filter.user)
-                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            let textSearch;
 
-            if(filter.to)
+            if(filter.user) {
+                textSearch = filter.user;
+                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            }
+
+            if(filter.to) {
+                textSearch = filter.to;
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+            }
+
+            if(filter.excludeUser) {
+                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
+                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
+                delete filter.excludeUser;
+            }
 
             let limit:number= 1000000;
             if(filter.limit) {
@@ -114,18 +126,34 @@ async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<
                 delete filter.to_date;
             }
 
-            let finalFilter:any;
+            let normalFilter:any;
             if(filterWithOperatorAnd.length>0) {
                 filterWithOperatorAnd.push(filter)
-                finalFilter = {$and: filterWithOperatorAnd}
+                normalFilter = {$and: filterWithOperatorAnd}
             } else
-                finalFilter = filter;
+                normalFilter = filter;
+
+            let finalFilter;
+            if(textSearch) {
+                finalFilter = {$and:[{$text: {$search: textSearch}},normalFilter]}
+            } else
+                finalFilter = normalFilter;
+
+            let aggregateQuerty:any[] = [];
+            if(finalFilter)
+                aggregateQuerty.push({$match: finalFilter});
+
+            if(groupOptions)
+                aggregateQuerty.push({ $group: groupOptions })
 
             //console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
-            let mongoResult = await tipbotModel.aggregate([
-                { $match: finalFilter },
-                { $group: groupOptions }
-            ]).sort(sortOptions).limit(limit).exec();
+            //console.time("dbTimeCount: "+JSON.stringify(finalFilter)+" || GROUPOPTIONS: "+JSON.stringify(groupOptions)+" || SORTOPTIONS: "+JSON.stringify(sortOptions));
+            let mongoResult:any[];
+            if(limit)
+                mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).limit(limit).toArray();
+            else
+                mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).toArray();
+            //console.timeEnd("dbTimeCount: "+JSON.stringify(finalFilter)+" || GROUPOPTIONS: "+JSON.stringify(groupOptions)+" || SORTOPTIONS: "+JSON.stringify(sortOptions));
 
             //console.log("aggregate result: " + JSON.stringify(mongoResult));
 

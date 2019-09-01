@@ -1,7 +1,7 @@
-import { Model } from 'mongoose';
+import { Collection } from 'mongodb';
 import * as db from '../db';
 
-var tipbotModel: Model<any>;
+var tipbotModel: Collection<any>;
 
 export async function init() {
     tipbotModel = await db.getNewDbModelTipsStandarized();
@@ -32,11 +32,23 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
         try {
             let filterWithOperatorAnd:any[] = [];
 
-            if(filter.user)
-                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            let textSearch;
 
-            if(filter.to)
+            if(filter.user) {
+                textSearch = filter.user;
+                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
+            }
+
+            if(filter.to) {
+                textSearch = filter.to;
                 filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
+            }
+
+            if(filter.excludeUser) {
+                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
+                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
+                delete filter.excludeUser;
+            }
 
             let limit:number;
             if(filter.limit) {
@@ -75,21 +87,38 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
                 delete filter.to_date;
             }
 
-            let result_fields:string;
+            let projection:any;
             if(filter.result_fields) {
-                result_fields = filter.result_fields.trim().replace(/,/g,' ');
+                projection = {};
+                let fields:any[] = filter.result_fields.split(',');
+                fields.forEach(field => projection[field] = 1);
+                
                 delete filter.result_fields;
             }
 
-            let finalFilter:any;
+            let normalFilter:any;
             if(filterWithOperatorAnd.length>0) {
                 filterWithOperatorAnd.push(filter)
-                finalFilter = {$and: filterWithOperatorAnd}
+                normalFilter = {$and: filterWithOperatorAnd}
             } else
-                finalFilter = filter;
+                normalFilter = filter;
+
+            let finalFilter;
+            if(textSearch) {
+                finalFilter = {$and:[{$text: {$search: textSearch}},normalFilter]}
+            } else
+                finalFilter = normalFilter;
 
             //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
-            let mongoResult:any[] = await tipbotModel.find(finalFilter, result_fields).sort({momentAsDate:-1}).limit(limit).exec();
+            console.time("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
+            let mongoResult:any[];
+            if(limit)
+                mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).limit(limit).toArray();
+            else
+                mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).toArray();
+            console.timeEnd("dbTimeStandard"+JSON.stringify(finalFilter)+" || RESULT_FIELDS: " + JSON.stringify(projection));
+            //console.log("mongoResult: " + JSON.stringify(mongoResult));
+
 
             if(mongoResult) return mongoResult
             else return null;
