@@ -3,7 +3,7 @@ info:
   title: XRPTipBot API Specification
   description: |
    This API is a full mirror of the [XRPTipBot API](https://www.xrptipbot.com/json/feed) by [@WietseWind](https://twitter.com/WietseWind).<br>
-   The API feed is updated every 30 seconds. The original API provides limited capabilities and therefore this new API was built to enhance the querying capabilities.
+   The API feed is updated every 60 seconds. This new API was built to enhance the querying capabilities for @xrptipbot transactions.
    
    You can use every JSON field of the feed as query parameter. Additionally these query params are supported\:<br><br>
    '<b>from_date=2019-02-01 00:03:00</b>' => to pick tips only from that date/time on<br>
@@ -15,13 +15,13 @@ info:
    The query param is called 'result_fields' and you can define the fields included in your respone, divided by comma. As Example\:<br>
    '<b>result_fields=moment,user,to,xrp</b>' -> this will return you just those 4 defined JSON properties in the response.<br>
    Try it out with this request\:<br>
-   [All Tips WietseWind received](https://api.xrptipbot-stats.com/feed?to=WietseWind&result_fields=moment,user,to,xrp)
+   [Last 10 tips WietseWind has received](https://api.xrptipbot-stats.com/feed?to=WietseWind&limit=10&result_fields=moment,user,to,xrp)
 
    As the original XRPTipBot-Feed built by [@WietseWind](https://twitter.com/WietseWind), the API provides it`s data in a decending manner, ordered by date.
-  version: 1.3.0
+  version: 3.3.1
 tags:
   - name: XRPTipBot API
-    description: This API is dedicated to the XRPTipBot. It is still in beta and will be improved over time.
+    description: This API is dedicated to the XRPTipBot and will be improved over time.
 paths:
   /feed:
     get:
