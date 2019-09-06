@@ -33,13 +33,17 @@ async function getNewDbModel(collectionName: string): Promise<Collection<any>> {
 }
 
 async function ensureIndexes(collection: Collection): Promise<Collection> {
-    await collection.createIndex({id: -1}, {unique: true});
-    await collection.createIndex({momentAsDate: -1});
-    await collection.createIndex({xrp: 1});
-    await collection.createIndex({user_id: 1});
-    await collection.createIndex({to_id: 1});
-    await collection.createIndex({type: 1, network: 1},);
-    await collection.createIndex({user: "text", to: "text"});
+    try {
+        await collection.createIndex({id: -1}, {unique: true});
+        await collection.createIndex({momentAsDate: -1});
+        await collection.createIndex({xrp: 1});
+        await collection.createIndex({user_id: 1});
+        await collection.createIndex({to_id: 1});
+        await collection.createIndex({type: 1, network: 1},);
+        await collection.createIndex({user: "text", to: "text"});
+    } catch(err) {
+        console.log(JSON.stringify(err));
+    }
 
     return collection;
 }
