@@ -41,7 +41,6 @@ async function getStandarizedFeed(filter:any): Promise<any[]> {
             console.timeEnd("dbTimeStandard"+JSON.stringify(queryParams));
             //console.log("mongoResult: " + JSON.stringify(mongoResult));
 
-            console.log(mongoResult[0].momentAsDate)
             if(mongoResult) return mongoResult
             else return null;
 
