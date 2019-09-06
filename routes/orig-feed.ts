@@ -81,12 +81,13 @@ async function getFeed(filter:any): Promise<any[]> {
                 delete filter.to_date;
             }
 
-            let projection:any;
+            let options:any = {};
             if(filter.result_fields) {
-                projection = {};
+                let projection = {};
                 let fields:any[] = filter.result_fields.split(',');
                 fields.forEach(field => projection[field] = 1);
-                
+
+                options.projection = projection;
                 delete filter.result_fields;
             }
 
@@ -97,12 +98,12 @@ async function getFeed(filter:any): Promise<any[]> {
             } else
                 finalFilter = filter;
 
-            //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
+            //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + options + "' and limit: " +limit);
             let mongoResult:any[];
             if(limit)
-                mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).limit(limit).toArray();
+                mongoResult = await tipbotModel.find(finalFilter, options).sort({momentAsDate:-1}).limit(limit).toArray();
             else
-                mongoResult = await tipbotModel.find(finalFilter, projection).sort({momentAsDate:-1}).toArray();
+                mongoResult = await tipbotModel.find(finalFilter, options).sort({momentAsDate:-1}).toArray();
 
             if(mongoResult) return mongoResult
             else return null;
