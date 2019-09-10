@@ -1,9 +1,14 @@
 export interface QUERYBUILDER {
-
+    filter: any;
+    options: any;
 }
 
-export function buildQuery(filter): any[] {
-    let returnValues:any[] = [];
+export function buildQuery(filter): QUERYBUILDER {
+
+    let returnValue:QUERYBUILDER = {
+        filter: {},
+        options: {}
+    };
 
     let filterWithOperatorAnd:any[] = [];
     let options:any = {};
@@ -89,8 +94,8 @@ export function buildQuery(filter): any[] {
     } else
         finalFilter = normalFilter;
 
-    returnValues.push(finalFilter);
-    returnValues.push(options);
+    returnValue.filter = finalFilter;
+    returnValue.options = options;
 
-    return returnValues;
+    return returnValue;
 }

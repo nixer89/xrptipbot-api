@@ -27,16 +27,16 @@ export async function registerRoutes(fastify, opts, next) {
 }
 
 async function getFeed(filter:any): Promise<any[]> {
-    filter = JSON.parse(filter);
+    let parsedFilter = JSON.parse(filter);
     
     if(tipbotModel) {
         try {
-            let queryParams:any[] = utils.buildQuery(filter);
+            let queryParams:utils.QUERYBUILDER = utils.buildQuery(parsedFilter);
             
-            queryParams[1].sort = {momentAsDate:-1};
+            queryParams.options.sort = {momentAsDate:-1};
 
             //console.log("Calling db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + options + "' and limit: " +limit);
-            let mongoResult:any[] = await tipbotModel.find(queryParams[0], queryParams[1]).toArray();
+            let mongoResult:any[] = await tipbotModel.find(queryParams.filter, queryParams.options).toArray();
 
             if(mongoResult) return mongoResult
             else return null;

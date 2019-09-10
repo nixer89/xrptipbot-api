@@ -1,5 +1,6 @@
 import { Collection } from 'mongodb';
 import * as db from '../db';
+import * as utils from '../utils';
 
 var tipbotModel: Collection<any>;
 
@@ -65,97 +66,24 @@ export async function registerRoutes(fastify, opts, next) {
 }
 
 async function Count(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {
-    filter = JSON.parse(filter);
+    let parsedFilter = JSON.parse(filter);
     
     if(tipbotModel) {
         try {
-            let filterWithOperatorAnd:any[] = [];
-            
-            let textSearch;
-
-            if(filter.user) {
-                textSearch = filter.user;
-                filter.user = { $regex: "^"+filter.user+"$", $options: "i" }
-            }
-
-            if(filter.to) {
-                textSearch = filter.to;
-                filter.to = { $regex: "^"+filter.to+"$", $options: "i" }
-            }
-
-            if(filter.excludeUser) {
-                filterWithOperatorAnd.push({user_id: {$nin: JSON.parse(filter.excludeUser)}});
-                filterWithOperatorAnd.push({to_id: {$nin: JSON.parse(filter.excludeUser)}});
-                delete filter.excludeUser;
-            }
-
-            let limit:number= 1000000;
-            if(filter.limit) {
-                limit = parseInt(filter.limit);
-                if(isNaN(limit) || limit==0)
-                    return null;
-
-                delete filter.limit;
-            }
-
-            if(filter.xrp) {
-                if(isNaN(filter.xrp)) {
-                    if(filter.xrp.includes('>='))
-                        filterWithOperatorAnd.push({xrp: {$gte: filter.xrp.substring(2)}});
-                    else if(filter.xrp.includes('<='))
-                        filterWithOperatorAnd.push({xrp: {$lte: filter.xrp.substring(2)}});
-                    else if(filter.xrp.includes('>'))
-                        filterWithOperatorAnd.push({xrp: {$gt: filter.xrp.substring(1)}});
-                    else if(filter.xrp.includes('<'))
-                        filterWithOperatorAnd.push({xrp: {$lt: filter.xrp.substring(1)}});
-                    delete filter.xrp;
-                }
-            }
-
-            let from_date:Date;
-            if(filter.from_date) {
-                from_date = new Date(filter.from_date)
-                filterWithOperatorAnd.push({momentAsDate: {$gte: from_date}});
-                delete filter.from_date;
-            }
-
-            let to_date:Date;
-            if(filter.to_date) {
-                to_date = new Date(filter.to_date)
-                filterWithOperatorAnd.push({momentAsDate: {$lte: to_date}});
-                delete filter.to_date;
-            }
-
-            let normalFilter:any;
-            if(filterWithOperatorAnd.length>0) {
-                filterWithOperatorAnd.push(filter)
-                normalFilter = {$and: filterWithOperatorAnd}
-            } else
-                normalFilter = filter;
-
-            let finalFilter;
-            if(textSearch) {
-                finalFilter = {$and:[{$text: {$search: textSearch}},normalFilter]}
-            } else
-                finalFilter = normalFilter;
-
             let aggregateQuerty:any[] = [];
-            if(finalFilter)
-                aggregateQuerty.push({$match: finalFilter});
+            let queryParams:utils.QUERYBUILDER = utils.buildQuery(parsedFilter);
+            if(queryParams.filter)
+                aggregateQuerty.push({$match: queryParams.filter});
 
             if(groupOptions)
                 aggregateQuerty.push({ $group: groupOptions })
 
-            //console.log("Calling count db with filter: " + JSON.stringify(finalFilter));
-            //console.time("dbTimeCount: "+JSON.stringify(finalFilter)+" || GROUPOPTIONS: "+JSON.stringify(groupOptions)+" || SORTOPTIONS: "+JSON.stringify(sortOptions));
-            let mongoResult:any[];
-            if(limit)
-                mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).limit(limit).toArray();
-            else
-                mongoResult = await tipbotModel.aggregate(aggregateQuerty).sort(sortOptions).toArray();
-            //console.timeEnd("dbTimeCount: "+JSON.stringify(finalFilter)+" || GROUPOPTIONS: "+JSON.stringify(groupOptions)+" || SORTOPTIONS: "+JSON.stringify(sortOptions));
+            if(sortOptions)
+                aggregateQuerty.push({ $sort: sortOptions})
 
-            //console.log("aggregate result: " + JSON.stringify(mongoResult));
+            //console.time("dbTimeCount: "+JSON.stringify(aggregateQuerty));
+            let mongoResult:any[] = await tipbotModel.aggregate(aggregateQuerty, queryParams.options).toArray();
+            //console.timeEnd("dbTimeCount: "+JSON.stringify(aggregateQuerty));
 
             return mongoResult;
 

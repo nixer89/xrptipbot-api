@@ -5,18 +5,18 @@ import * as utils from '../utils';
 var tipbotModel: Collection<any>;
 
 export async function init() {
-    tipbotModel = await db.getNewDbModelTipsStandarized();
+    tipbotModel = await db.getNewDbModelILPStandarized();
 }
 
 export async function registerRoutes(fastify, opts, next) {
-    fastify.get('/aggregate/xrp', async (request, reply) => {
-        //console.log("query params for /aggregate/xrp: " + JSON.stringify(request.query));
+    fastify.get('/aggregate-ilp/xrp', async (request, reply) => {
+        //console.log("query params for /aggregate-ilp/xrp: " + JSON.stringify(request.query));
         try {
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: null, xrp: { $sum: "$xrp" }}, {xrp:-1});
+            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: null, amount: { $sum: "$amount" }}, {amount:-1});
             //console.log("/aggregate/xrp Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
-                return { xrp: aggregateResult.length > 0 ? aggregateResult[0].xrp : 0}
+                return { amount: aggregateResult.length > 0 ? aggregateResult[0].amount : 0}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
             }
@@ -26,11 +26,10 @@ export async function registerRoutes(fastify, opts, next) {
         }
     });
 
-    fastify.get('/aggregate/xrp/mostReceivedFrom', async (request, reply) => {
-        //console.log("query params for /aggregate/mostXRPReceived: " + JSON.stringify(request.query));
+    fastify.get('/aggregate-ilp/xrp/mostReceived', async (request, reply) => {
+        //console.log("query params for /aggregate-ilp/xrp/mostReceived: " + JSON.stringify(request.query));
         try {
-            request.query.user_id = {"$ne":null}
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: { user: {$toLower: "$user"}, network: {$toLower: "$user_network"}, id: "$user_id" }, userName: {$first: '$user'}, xrp: {"$sum": "$xrp"}},{xrp:-1});
+            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: { user: {$toLower: "$user"}, network: {$toLower: "$network"}, id: "$user_id" }, userName: {$first: '$user'}, amount: {"$sum": "$amount"}},{amount:-1});
             //console.log("/aggregate/xrp/mostReceivedFrom Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
@@ -44,17 +43,16 @@ export async function registerRoutes(fastify, opts, next) {
         }
     });
 
-    fastify.get('/aggregate/xrp/mostSentTo', async (request, reply) => {
-        //console.log("query params for /aggregate/mostXRPSent: " + JSON.stringify(request.query));
+    fastify.get('/aggregate-ilp/xrp/leastReceived', async (request, reply) => {
+        //console.log("query params for /aggregate-ilp/xrp/mostReceived: " + JSON.stringify(request.query));
         try {
-            request.query.to_id = {"$ne":null}
-            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: { user: {$toLower: "$to"}, network: {$toLower: "$to_network"}, id: "$to_id" }, userName: {$first: '$to'}, xrp: {"$sum": "$xrp"}},{xrp:-1});
-            //console.log("/aggregate/xrp/mostSentTo Result: " + JSON.stringify(aggregateResult));
+            let aggregateResult = await Aggregate(JSON.stringify(request.query), { _id: { user: {$toLower: "$user"}, network: {$toLower: "$network"}, id: "$user_id" }, userName: {$first: '$user'}, amount: {"$sum": "$amount"}},{amount:1});
+            //console.log("/aggregate/xrp/mostReceivedFrom Result: " + JSON.stringify(aggregateResult));
 
             if(aggregateResult) {
                 return { result: aggregateResult}
             } else {
-                reply.code(500).send('Something went wrong. Please check your query params');
+                reply.code(500).send('Something went wrong. Please check your query params');  
             }
         } catch(err) {
             console.log(JSON.stringify(err));
@@ -67,7 +65,6 @@ export async function registerRoutes(fastify, opts, next) {
 
 async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Promise<any> {
     let parsedFilter = JSON.parse(filter);
-    //console.log("received filter: " + JSON.stringify(filter));
     
     if(tipbotModel) {
         try {
@@ -83,9 +80,9 @@ async function Aggregate(filter:any, groupOptions: any, sortOptions?: any): Prom
             if(sortOptions)
                 aggregateQuerty.push({ $sort: sortOptions});
 
-            //console.time("dbTimeAggregate: "+JSON.stringify(aggregateQuerty));
+            //console.time("dbTimeAggregateILP: "+JSON.stringify(aggregateQuerty));
             let mongoResult:any[] = await tipbotModel.aggregate(aggregateQuerty, queryParams.options).toArray();
-            //console.timeEnd("dbTimeAggregate: "+JSON.stringify(aggregateQuerty));
+            //console.timeEnd("dbTimeAggregateILP: "+JSON.stringify(aggregateQuerty));
 
             return mongoResult;
 

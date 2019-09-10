@@ -27,16 +27,16 @@ export async function init() {
 }
 
 async function getILPFeed(filter:any): Promise<any[]> {
-    filter = JSON.parse(filter);
+    let parsedFilter = JSON.parse(filter);
     
     let emptyResult:any[] = [];
     if(tipbotModel) {
         try {
-            let queryParams:any[] = utils.buildQuery(filter);
-            queryParams[1].sort = {momentAsDate:-1};
+            let queryParams:utils.QUERYBUILDER = utils.buildQuery(parsedFilter);
+            queryParams.options.sort = {momentAsDate:-1};
 
             //console.log("Calling ilp-db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
-            let mongoResult:any[] = await tipbotModel.find(queryParams[0], queryParams[1]).toArray();
+            let mongoResult:any[] = await tipbotModel.find(queryParams.filter, queryParams.options).toArray();
 
             if(mongoResult) return mongoResult
             else return emptyResult;

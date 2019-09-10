@@ -4,17 +4,13 @@ import * as utils from '../utils';
 
 var tipbotModel: Collection<any>;
 
-export async function init() {
-    tipbotModel = await db.getNewDbModelTipsStandarized();
-}
-
 export async function registerRoutes(fastify, opts, next) {
-    fastify.get('/std-feed', async (request, reply) => {
+    fastify.get('/std-ilp-feed', async (request, reply) => {
         //console.log("query params: " + JSON.stringify(request.query));
         try {
-            let feedResult = await getStandarizedFeed(JSON.stringify(request.query));
+            let feedResult = await getILPFeed(JSON.stringify(request.query));
             if(feedResult) {
-                //console.log("feed length: " + feedResult.length);
+                //console.log("ilp-feed length: " + feedResult.length);
                 return { feed: feedResult}
             } else {
                 reply.code(500).send('Something went wrong. Please check your query params');  
@@ -26,26 +22,29 @@ export async function registerRoutes(fastify, opts, next) {
     next()
 }
 
-async function getStandarizedFeed(filter:any): Promise<any[]> {
+export async function init() {
+    tipbotModel = await db.getNewDbModelILPStandarized();
+}
+
+async function getILPFeed(filter:any): Promise<any[]> {
     let parsedFilter = JSON.parse(filter);
     
+    let emptyResult:any[] = [];
     if(tipbotModel) {
         try {
             let queryParams:utils.QUERYBUILDER = utils.buildQuery(parsedFilter);
-            
             queryParams.options.sort = {momentAsDate:-1};
 
-            //console.time("dbTimeStandard"+JSON.stringify(queryParams));
+            //console.log("Calling ilp-db with finalFilter: " + JSON.stringify(finalFilter) + " , result_field: '" + result_fields + "' and limit: " +limit);
             let mongoResult:any[] = await tipbotModel.find(queryParams.filter, queryParams.options).toArray();
-            //console.timeEnd("dbTimeStandard"+JSON.stringify(queryParams));
 
             if(mongoResult) return mongoResult
-            else return null;
+            else return emptyResult;
 
         } catch(err) {
             console.log(err);
-            return null;
+            return emptyResult;
         }
     } else
-        return null;
+        return emptyResult;
 }

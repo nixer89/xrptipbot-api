@@ -4,20 +4,26 @@ import consoleStamp = require("console-stamp");
 consoleStamp(console, { pattern: 'yyyy-mm-dd HH:MM:ss' });
 
 let tipCollectionName:string = "FeedCollection";
-let ilpCollectionName:string = "ILPFeedCollection";
 let tipCollectionNameStandarized:string = "FeedCollectionStandarized";
+let ilpCollectionName:string = "ILPFeedCollection";
+let ilpCollectionNameStandarized:string = "ILPFeedCollectionStandarized";
+
 let dbIp = process.env.DB_IP || "127.0.0.1"
 
 export async function getNewDbModelTips(): Promise<Collection<any>> {
     return ensureIndexes(await getNewDbModel(tipCollectionName));
 }
 
+export async function getNewDbModelTipsStandarized(): Promise<Collection<any>> {
+    return ensureIndexes( await getNewDbModel(tipCollectionNameStandarized));
+}
+
 export async function getNewDbModelILP(): Promise<Collection<any>> {
     return ensureIndexes(await getNewDbModel(ilpCollectionName));
 }
 
-export async function getNewDbModelTipsStandarized(): Promise<Collection<any>> {
-    return ensureIndexes( await getNewDbModel(tipCollectionNameStandarized));
+export async function getNewDbModelILPStandarized(): Promise<Collection<any>> {
+    return ensureIndexes(await getNewDbModel(ilpCollectionNameStandarized));
 }
 
 async function getNewDbModel(collectionName: string): Promise<Collection<any>> {
