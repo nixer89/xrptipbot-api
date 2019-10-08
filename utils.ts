@@ -110,7 +110,7 @@ export function checkParamsValidity(queryParams:string) : boolean {
         limit = parseInt(filter.limit);
     }
 
-    if((isNaN(limit) || limit<=0 || limit > 10000) && !filter.to && !filter.to_id && !filter.user && filter.user_id && !filter.from_date && !filter.to_date)
+    if((isNaN(limit) || limit<=0 || limit > 10000) && !filter.to && !filter.to_id && !filter.user && !filter.user_id && !filter.from_date && !filter.to_date)
             paramsAreOk = false;
 
     return paramsAreOk;
