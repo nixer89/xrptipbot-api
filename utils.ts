@@ -99,3 +99,19 @@ export function buildQuery(filter): QUERYBUILDER {
 
     return returnValue;
 }
+
+export function checkParamsValidity(queryParams:string) : boolean {
+    let paramsAreOk = true;
+
+    let filter = JSON.parse(queryParams);
+
+    let limit = -1;
+    if(filter.limit) {
+        limit = parseInt(filter.limit);
+    }
+
+    if((isNaN(limit) || limit<=0 || limit > 10000) && !filter.to && !filter.to_id && !filter.user && filter.user_id && !filter.from_date && !filter.to_date)
+            paramsAreOk = false;
+
+    return paramsAreOk;
+}

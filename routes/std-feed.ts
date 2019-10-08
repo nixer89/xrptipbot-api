@@ -12,12 +12,16 @@ export async function registerRoutes(fastify, opts, next) {
     fastify.get('/std-feed', async (request, reply) => {
         //console.log("query params: " + JSON.stringify(request.query));
         try {
-            let feedResult = await getStandarizedFeed(JSON.stringify(request.query));
-            if(feedResult) {
-                //console.log("feed length: " + feedResult.length);
-                return { feed: feedResult}
+            if(utils.checkParamsValidity(JSON.stringify(request.query))) {
+                let feedResult = await getStandarizedFeed(JSON.stringify(request.query));
+                if(feedResult) {
+                    //console.log("feed length: " + feedResult.length);
+                    return { feed: feedResult}
+                } else {
+                    reply.code(500).send('Something went wrong. Please check your query params');  
+                }
             } else {
-                reply.code(500).send('Something went wrong. Please check your query params');  
+                reply.code(500).send('This request is not possible. Please contact @nixerFFM');  
             }
         } catch {
             reply.code(500).send('Something went wrong. Please check your query params');
