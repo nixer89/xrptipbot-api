@@ -36,12 +36,12 @@ async function Distinct(filter:any): Promise<any> {
         try {
             let queryParams:utils.QUERYBUILDER = utils.buildQuery(parsedFilter);
 
-            let distinctField = filter.distinct;
-            delete filter.distinct;
+            let distinctField = parsedFilter.distinct;
+            delete parsedFilter.distinct;
             
-            //console.time("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField);
+            //console.time("dbTimeDistinct: "+JSON.stringify(queryParams.filter)+" || DISTINCTFIELD: "+distinctField);
             let mongoResult = await tipbotModel.distinct(distinctField,queryParams.filter);
-            //console.timeEnd("dbTimeDistinct: "+JSON.stringify(finalFilter)+" || DISTINCTFIELD: "+distinctField)
+            //console.timeEnd("dbTimeDistinct: "+JSON.stringify(queryParams.filter)+" || DISTINCTFIELD: "+distinctField)
 
             return mongoResult;
 
