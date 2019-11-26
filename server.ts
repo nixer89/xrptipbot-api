@@ -15,6 +15,12 @@ fastify.register(require('fastify-cors'), {
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin']
 });
 
+console.log("adding response compression");
+fastify.register(require('fastify-compress'));
+
+console.log("adding some security headers");
+fastify.register(require('fastify-helmet'));
+
 console.log("declaring routes");
 fastify.register(origFeedRoute.registerRoutes);
 fastify.register(stdFeedRoute.registerRoutes);
