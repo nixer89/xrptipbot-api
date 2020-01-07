@@ -43,17 +43,22 @@ export function buildQuery(filter): QUERYBUILDER {
         delete filter.limit;
     }
 
-    if(filter.xrp && isNaN(filter.xrp)) {
-        if(filter.xrp.includes('>='))
-            filterWithOperatorAnd.push({xrp: {$gte: filter.xrp.substring(2)}});
-        else if(filter.xrp.includes('<='))
-            filterWithOperatorAnd.push({xrp: {$lte: filter.xrp.substring(2)}});
-        else if(filter.xrp.includes('>'))
-            filterWithOperatorAnd.push({xrp: {$gt: filter.xrp.substring(1)}});
-        else if(filter.xrp.includes('<'))
-            filterWithOperatorAnd.push({xrp: {$lt: filter.xrp.substring(1)}});
-        else
-            return null; //abort in case some weird stuff is typed in as xrp filter
+    if(filter.xrp) {
+        if(!isNaN(filter.xrp)) {
+            filterWithOperatorAnd.push({xrp: {$eq: Number(filter.xrp)}});
+        } else {
+            if(filter.xrp.includes('>='))
+                filterWithOperatorAnd.push({xrp: {$gte: Number(filter.xrp.substring(2))}});
+            else if(filter.xrp.includes('<='))
+                filterWithOperatorAnd.push({xrp: {$lte: Number(filter.xrp.substring(2))}});
+            else if(filter.xrp.includes('>'))
+                filterWithOperatorAnd.push({xrp: {$gt: Number(filter.xrp.substring(1))}});
+            else if(filter.xrp.includes('<'))
+                filterWithOperatorAnd.push({xrp: {$lt: Number(filter.xrp.substring(1))}});
+            else
+                return null; //abort in case some weird stuff is typed in as xrp filter
+        }
+
         delete filter.xrp;
     }
 
